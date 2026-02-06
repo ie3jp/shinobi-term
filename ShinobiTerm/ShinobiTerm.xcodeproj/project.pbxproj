@@ -7,19 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1EE7A516D78A3BED75070F51 /* ConnectionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC09A624D84D7692F5B348F4 /* ConnectionProfile.swift */; };
 		2A83F96C43778DEAD96242FD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A65AD0AFED47311E6D167B /* ContentView.swift */; };
+		2AEC83726A4F5873AF474E94 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26D05DA878BE9BBDBF5ADE11 /* AppSettings.swift */; };
 		496FEA0C6D28DA457C7AE2A1 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = CF897CAD1A8FFC1096C6E000 /* Citadel */; };
+		63B428D8E299375C4363E76E /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130BFE3A60EBA7017FA548C6 /* KeychainService.swift */; };
 		A513B7E3EE94DFB9DBCA4976 /* ShinobiTermApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97F07970261788109324294 /* ShinobiTermApp.swift */; };
 		CF4BB5E4CA084CDC5F12D319 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE11118F620376902A1388DE /* Assets.xcassets */; };
 		DECF66C31C111249A8C53428 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 88862A6E66F0F0C815DA5821 /* SwiftTerm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		130BFE3A60EBA7017FA548C6 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		26D05DA878BE9BBDBF5ADE11 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		34A65AD0AFED47311E6D167B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		767D6F3E649FAFFF41ED5F9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		911E4506E5EF95B0D878F11B /* ShinobiTerm.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ShinobiTerm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE11118F620376902A1388DE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E97F07970261788109324294 /* ShinobiTermApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShinobiTermApp.swift; sourceTree = "<group>"; };
+		FC09A624D84D7692F5B348F4 /* ConnectionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionProfile.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +60,7 @@
 		6666155B5D5A8212EB93B0D5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				130BFE3A60EBA7017FA548C6 /* KeychainService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -68,6 +75,8 @@
 		BAB900F87DCC9863D9643EB3 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				26D05DA878BE9BBDBF5ADE11 /* AppSettings.swift */,
+				FC09A624D84D7692F5B348F4 /* ConnectionProfile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -166,7 +175,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2AEC83726A4F5873AF474E94 /* AppSettings.swift in Sources */,
+				1EE7A516D78A3BED75070F51 /* ConnectionProfile.swift in Sources */,
 				2A83F96C43778DEAD96242FD /* ContentView.swift in Sources */,
+				63B428D8E299375C4363E76E /* KeychainService.swift in Sources */,
 				A513B7E3EE94DFB9DBCA4976 /* ShinobiTermApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

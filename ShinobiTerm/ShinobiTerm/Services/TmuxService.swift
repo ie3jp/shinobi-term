@@ -52,6 +52,7 @@ struct TmuxSession: Identifiable {
 
 struct TmuxService {
     /// Execute `tmux ls` via the SSH session and return parsed sessions
+    @MainActor
     static func listSessions(session: SSHSession) async -> [TmuxSession] {
         var outputData = Data()
         let previousHandler = session.onDataReceived

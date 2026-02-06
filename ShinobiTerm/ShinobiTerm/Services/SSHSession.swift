@@ -19,8 +19,9 @@ final class SSHSession: ObservableObject {
     var onDataReceived: ((Data) -> Void)?
 
     private var stdinContinuation: AsyncStream<ByteBuffer>.Continuation?
-    private var terminalColumns: UInt32 = 80
-    private var terminalRows: UInt32 = 24
+    private nonisolated(unsafe) var ttyWriter: TTYStdinWriter?
+    private var terminalColumns: Int = 80
+    private var terminalRows: Int = 24
 
     func connect(
         hostname: String,
@@ -55,6 +56,7 @@ final class SSHSession: ObservableObject {
 
         stdinContinuation?.finish()
         stdinContinuation = nil
+        ttyWriter = nil
 
         Task {
             try? await client?.close()
@@ -74,11 +76,19 @@ final class SSHSession: ObservableObject {
     }
 
     func resize(columns: Int, rows: Int) {
-        terminalColumns = UInt32(columns)
-        terminalRows = UInt32(rows)
-        // Note: Citadel doesn't expose window change request directly.
-        // Terminal resize will take effect on next PTY session.
-        // For dynamic resize, we may need to access the underlying NIO channel.
+        terminalColumns = columns
+        terminalRows = rows
+
+        if let writer = ttyWriter {
+            Task {
+                try? await writer.changeSize(
+                    cols: columns,
+                    rows: rows,
+                    pixelWidth: 0,
+                    pixelHeight: 0
+                )
+            }
+        }
     }
 
     private func startPTYSession() {
@@ -105,12 +115,22 @@ final class SSHSession: ObservableObject {
                         ])
                     )
                 ) { inbound, outbound in
+                    await MainActor.run {
+                        self?.ttyWriter = outbound
+                    }
+
                     try await withThrowingTaskGroup(of: Void.self) { group in
                         // Read output from remote
                         group.addTask {
-                            for try await var buffer in inbound {
-                                guard let data = buffer.readData(length: buffer.readableBytes) else {
-                                    continue
+                            for try await output in inbound {
+                                let data: Data
+                                switch output {
+                                case .stdout(var buffer):
+                                    guard let bytes = buffer.readData(length: buffer.readableBytes) else { continue }
+                                    data = bytes
+                                case .stderr(var buffer):
+                                    guard let bytes = buffer.readData(length: buffer.readableBytes) else { continue }
+                                    data = bytes
                                 }
                                 await MainActor.run {
                                     self?.onDataReceived?(data)
@@ -140,6 +160,7 @@ final class SSHSession: ObservableObject {
             if !Task.isCancelled {
                 await MainActor.run {
                     self?.state = .disconnected
+                    self?.ttyWriter = nil
                 }
             }
         }

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		11C4DC91DB7823D380CD190E /* ExtraKeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997FCA12B10C25C9CB97B075 /* ExtraKeysView.swift */; };
 		12207A3BD8CCEDC47FB48765 /* SSHSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4772414CC65722C3C25D0860 /* SSHSession.swift */; };
+		18FA6FEA2CF3F4147095BADD /* ConnectionListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE26CC5BEAEC0333CAE50B50 /* ConnectionListView.swift */; };
 		1EE7A516D78A3BED75070F51 /* ConnectionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC09A624D84D7692F5B348F4 /* ConnectionProfile.swift */; };
 		2A83F96C43778DEAD96242FD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A65AD0AFED47311E6D167B /* ContentView.swift */; };
 		2AEC83726A4F5873AF474E94 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26D05DA878BE9BBDBF5ADE11 /* AppSettings.swift */; };
@@ -17,6 +18,7 @@
 		6E646055AE492952F340D48A /* FontManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1ACFCA9EE47CBFADEA7C38 /* FontManager.swift */; };
 		92B9AE7BF6C93FEF441B83D2 /* TerminalContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E92AE15D41269F62CD134A9 /* TerminalContainerView.swift */; };
 		A513B7E3EE94DFB9DBCA4976 /* ShinobiTermApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97F07970261788109324294 /* ShinobiTermApp.swift */; };
+		C7D96C3496C225E6D4891E13 /* ConnectionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3321521A940512BB919276 /* ConnectionFormView.swift */; };
 		CF4BB5E4CA084CDC5F12D319 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE11118F620376902A1388DE /* Assets.xcassets */; };
 		DBD3F4BC548BAFD7F481D7EC /* ShinobiTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF43333A82B53B852FA8F1D8 /* ShinobiTerminalView.swift */; };
 		DECF66C31C111249A8C53428 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 88862A6E66F0F0C815DA5821 /* SwiftTerm */; };
@@ -37,6 +39,8 @@
 		CE11118F620376902A1388DE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE1ACFCA9EE47CBFADEA7C38 /* FontManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontManager.swift; sourceTree = "<group>"; };
 		E97F07970261788109324294 /* ShinobiTermApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShinobiTermApp.swift; sourceTree = "<group>"; };
+		EC3321521A940512BB919276 /* ConnectionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionFormView.swift; sourceTree = "<group>"; };
+		EE26CC5BEAEC0333CAE50B50 /* ConnectionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionListView.swift; sourceTree = "<group>"; };
 		FC09A624D84D7692F5B348F4 /* ConnectionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionProfile.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -83,6 +87,8 @@
 		8BADC8D892429016034F04F9 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				EC3321521A940512BB919276 /* ConnectionFormView.swift */,
+				EE26CC5BEAEC0333CAE50B50 /* ConnectionListView.swift */,
 				997FCA12B10C25C9CB97B075 /* ExtraKeysView.swift */,
 				BF43333A82B53B852FA8F1D8 /* ShinobiTerminalView.swift */,
 				4E92AE15D41269F62CD134A9 /* TerminalContainerView.swift */,
@@ -194,6 +200,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2AEC83726A4F5873AF474E94 /* AppSettings.swift in Sources */,
+				C7D96C3496C225E6D4891E13 /* ConnectionFormView.swift in Sources */,
+				18FA6FEA2CF3F4147095BADD /* ConnectionListView.swift in Sources */,
 				1EE7A516D78A3BED75070F51 /* ConnectionProfile.swift in Sources */,
 				2A83F96C43778DEAD96242FD /* ContentView.swift in Sources */,
 				11C4DC91DB7823D380CD190E /* ExtraKeysView.swift in Sources */,

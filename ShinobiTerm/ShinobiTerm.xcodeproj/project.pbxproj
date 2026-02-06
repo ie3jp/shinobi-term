@@ -20,6 +20,7 @@
 		92B9AE7BF6C93FEF441B83D2 /* TerminalContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E92AE15D41269F62CD134A9 /* TerminalContainerView.swift */; };
 		9451BFA8DDFD46C034D9E540 /* TmuxAttachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E8EEEA242FDA7536113AB6 /* TmuxAttachView.swift */; };
 		A513B7E3EE94DFB9DBCA4976 /* ShinobiTermApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97F07970261788109324294 /* ShinobiTermApp.swift */; };
+		AD67D1388B126606BEBB95D6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FBFC9C30A271871F6C06C6 /* SettingsView.swift */; };
 		C7D96C3496C225E6D4891E13 /* ConnectionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3321521A940512BB919276 /* ConnectionFormView.swift */; };
 		CF4BB5E4CA084CDC5F12D319 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE11118F620376902A1388DE /* Assets.xcassets */; };
 		DBD3F4BC548BAFD7F481D7EC /* ShinobiTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF43333A82B53B852FA8F1D8 /* ShinobiTerminalView.swift */; };
@@ -42,6 +43,7 @@
 		BF43333A82B53B852FA8F1D8 /* ShinobiTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShinobiTerminalView.swift; sourceTree = "<group>"; };
 		CE11118F620376902A1388DE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE1ACFCA9EE47CBFADEA7C38 /* FontManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontManager.swift; sourceTree = "<group>"; };
+		D5FBFC9C30A271871F6C06C6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E97F07970261788109324294 /* ShinobiTermApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShinobiTermApp.swift; sourceTree = "<group>"; };
 		EC3321521A940512BB919276 /* ConnectionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionFormView.swift; sourceTree = "<group>"; };
 		EE26CC5BEAEC0333CAE50B50 /* ConnectionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionListView.swift; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 				EC3321521A940512BB919276 /* ConnectionFormView.swift */,
 				EE26CC5BEAEC0333CAE50B50 /* ConnectionListView.swift */,
 				997FCA12B10C25C9CB97B075 /* ExtraKeysView.swift */,
+				D5FBFC9C30A271871F6C06C6 /* SettingsView.swift */,
 				BF43333A82B53B852FA8F1D8 /* ShinobiTerminalView.swift */,
 				4E92AE15D41269F62CD134A9 /* TerminalContainerView.swift */,
 				A6E8EEEA242FDA7536113AB6 /* TmuxAttachView.swift */,
@@ -215,6 +218,7 @@
 				63B428D8E299375C4363E76E /* KeychainService.swift in Sources */,
 				F445099755E698984D90E636 /* SSHConnectionManager.swift in Sources */,
 				12207A3BD8CCEDC47FB48765 /* SSHSession.swift in Sources */,
+				AD67D1388B126606BEBB95D6 /* SettingsView.swift in Sources */,
 				A513B7E3EE94DFB9DBCA4976 /* ShinobiTermApp.swift in Sources */,
 				DBD3F4BC548BAFD7F481D7EC /* ShinobiTerminalView.swift in Sources */,
 				92B9AE7BF6C93FEF441B83D2 /* TerminalContainerView.swift in Sources */,

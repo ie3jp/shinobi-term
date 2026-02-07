@@ -37,21 +37,21 @@
 ## Design
 
 <p align="center">
-  <img src="design/pencil.png" width="800" alt="Shinobi Term UI Design">
+  <img src="design/pencil2.png" width="800" alt="Shinobi Term UI Design">
 </p>
 
 UI デザインは [Pencil](https://pencil.dev/) で作成。Claude Code MCP 連携によりデザインと実装を高速にイテレーション。
 
 ## Tech Stack
 
-| Component | Library |
-|-----------|---------|
-| UI | SwiftUI |
-| Terminal | [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) (xterm-256color) |
-| SSH | [Citadel](https://github.com/orlandos-nl/Citadel) (Pure Swift, SwiftNIO) |
-| Data | SwiftData |
-| Credentials | iOS Keychain |
-| Project | [XcodeGen](https://github.com/yonaskolb/XcodeGen) |
+| Component   | Library                                                                  |
+| ----------- | ------------------------------------------------------------------------ |
+| UI          | SwiftUI                                                                  |
+| Terminal    | [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) (xterm-256color) |
+| SSH         | [Citadel](https://github.com/orlandos-nl/Citadel) (Pure Swift, SwiftNIO) |
+| Data        | SwiftData                                                                |
+| Credentials | iOS Keychain                                                             |
+| Project     | [XcodeGen](https://github.com/yonaskolb/XcodeGen)                        |
 
 ## Build
 

@@ -267,6 +267,7 @@ struct ConnectionListView: View {
                 username: profile.username,
                 password: password
             )
+            guard session.state == .connected else { return }
             profile.lastConnectedAt = Date()
             activeTerminalProfile = profile
         }
@@ -290,6 +291,7 @@ struct ConnectionListView: View {
                 username: username,
                 password: ""
             )
+            guard session.state == .connected else { return }
             // Create a temporary profile for the terminal view
             let profile = ConnectionProfile(
                 name: hostname,

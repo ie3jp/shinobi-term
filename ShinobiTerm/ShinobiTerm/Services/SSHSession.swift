@@ -16,8 +16,20 @@ final class SSHSession: ObservableObject {
     private(set) var client: SSHClient?
     private var sessionTask: Task<Void, Never>?
 
-    var onDataReceived: ((Data) -> Void)?
+    var onDataReceived: ((Data) -> Void)? {
+        didSet {
+            // Flush buffered data when callback is registered
+            if let callback = onDataReceived, !pendingDataBuffer.isEmpty {
+                let buffered = pendingDataBuffer
+                pendingDataBuffer.removeAll()
+                for data in buffered {
+                    callback(data)
+                }
+            }
+        }
+    }
 
+    private var pendingDataBuffer: [Data] = []
     private var stdinContinuation: AsyncStream<ByteBuffer>.Continuation?
     private nonisolated(unsafe) var ttyWriter: TTYStdinWriter?
     private var terminalColumns: Int = 80
@@ -57,6 +69,7 @@ final class SSHSession: ObservableObject {
         stdinContinuation?.finish()
         stdinContinuation = nil
         ttyWriter = nil
+        pendingDataBuffer.removeAll()
 
         let oldClient = client
         client = nil
@@ -134,7 +147,11 @@ final class SSHSession: ObservableObject {
                                     data = bytes
                                 }
                                 await MainActor.run {
-                                    self?.onDataReceived?(data)
+                                    if let callback = self?.onDataReceived {
+                                        callback(data)
+                                    } else {
+                                        self?.pendingDataBuffer.append(data)
+                                    }
                                 }
                             }
                         }

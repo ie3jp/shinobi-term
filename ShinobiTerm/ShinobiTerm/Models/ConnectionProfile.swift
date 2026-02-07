@@ -8,6 +8,7 @@ enum AuthMethod: String, Codable, CaseIterable {
 
 @Model
 final class ConnectionProfile {
+    @Attribute(.unique) var profileId: String
     var name: String
     var hostname: String
     var port: Int
@@ -25,6 +26,7 @@ final class ConnectionProfile {
         authMethod: AuthMethod = .password,
         lastTmuxSession: String? = nil
     ) {
+        self.profileId = UUID().uuidString
         self.name = name
         self.hostname = hostname
         self.port = port

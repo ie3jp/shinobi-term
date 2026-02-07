@@ -14,7 +14,6 @@ struct ConnectionFormView: View {
     @State private var authMethod: AuthMethod = .password
     @State private var password = ""
     @State private var sshKey = ""
-    @State private var showPassword = false
     @State private var isTesting = false
     @State private var testResult: TestResult?
 
@@ -24,125 +23,251 @@ struct ConnectionFormView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("Connection") {
-                    LabeledContent("Name") {
-                        TextField("My Server", text: $name)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    LabeledContent("Hostname") {
-                        TextField("192.168.1.10", text: $hostname)
-                            .multilineTextAlignment(.trailing)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                    }
-                    LabeledContent("Port") {
-                        TextField("22", text: $port)
-                            .multilineTextAlignment(.trailing)
-                            .keyboardType(.numberPad)
-                    }
-                    LabeledContent("Username") {
-                        TextField("user", text: $username)
-                            .multilineTextAlignment(.trailing)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                    }
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Basic section
+                    basicSection
+
+                    // Authentication section
+                    authSection
+
+                    Spacer(minLength: 40)
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 24)
+            }
 
-                Section("Authentication") {
-                    Picker("Method", selection: $authMethod) {
-                        Text("Password").tag(AuthMethod.password)
-                        Text("SSH Key").tag(AuthMethod.sshKey)
+            // Bottom buttons
+            VStack(spacing: 12) {
+                // Save button
+                Button {
+                    save()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "square.and.arrow.down")
+                            .font(.system(size: 16))
+                        Text("save_connection")
+                            .font(.system(size: 15, weight: .semibold, design: .monospaced))
                     }
-
-                    if authMethod == .password {
-                        HStack {
-                            if showPassword {
-                                TextField("Password", text: $password)
-                                    .textInputAutocapitalization(.never)
-                                    .autocorrectionDisabled()
-                            } else {
-                                SecureField("Password", text: $password)
-                            }
-                            Button {
-                                showPassword.toggle()
-                            } label: {
-                                Image(systemName: showPassword ? "eye.slash" : "eye")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    } else {
-                        TextEditor(text: $sshKey)
-                            .font(.system(.caption, design: .monospaced))
-                            .frame(height: 120)
-                            .overlay {
-                                if sshKey.isEmpty {
-                                    Text("Paste your SSH private key here")
-                                        .foregroundStyle(.tertiary)
-                                        .allowsHitTesting(false)
-                                }
-                            }
-                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Color("greenPrimary"))
+                    .cornerRadius(10)
                 }
+                .disabled(name.isEmpty || hostname.isEmpty || username.isEmpty)
+                .opacity(name.isEmpty || hostname.isEmpty || username.isEmpty ? 0.5 : 1)
 
-                Section {
-                    Button {
-                        testConnection()
-                    } label: {
-                        HStack {
-                            Spacer()
-                            if isTesting {
-                                ProgressView()
-                                    .padding(.trailing, 8)
-                            }
+                // Test button
+                Button {
+                    testConnection()
+                } label: {
+                    HStack(spacing: 8) {
+                        if isTesting {
+                            ProgressView()
+                                .tint(Color("textSecondary"))
+                        } else {
                             Image(systemName: "bolt")
-                            Text("Test Connection")
-                            Spacer()
+                                .font(.system(size: 16))
                         }
-                        .foregroundStyle(.indigo)
+                        Text("test_connection")
+                            .font(.system(size: 15, weight: .medium, design: .monospaced))
                     }
-                    .disabled(isTesting || hostname.isEmpty || username.isEmpty)
+                    .foregroundStyle(Color("textSecondary"))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Color("bgSurface"))
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color("borderPrimary"), lineWidth: 1)
+                    )
+                }
+                .disabled(isTesting || hostname.isEmpty || username.isEmpty)
 
-                    if let result = testResult {
-                        switch result {
-                        case .success:
-                            Label("Connection successful", systemImage: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                        case .failure(let message):
-                            Label(message, systemImage: "xmark.circle.fill")
-                                .foregroundStyle(.red)
+                // Test result
+                if let result = testResult {
+                    switch result {
+                    case .success:
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("connection successful")
+                                .font(.system(size: 12, design: .monospaced))
                         }
+                        .foregroundStyle(Color("greenPrimary"))
+                    case .failure(let message):
+                        HStack(spacing: 6) {
+                            Image(systemName: "xmark.circle.fill")
+                            Text(message)
+                                .font(.system(size: 12, design: .monospaced))
+                                .lineLimit(1)
+                        }
+                        .foregroundStyle(Color("redError"))
                     }
                 }
             }
-            .navigationTitle(editingProfile == nil ? "New Connection" : "Edit Connection")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
-                        .fontWeight(.semibold)
-                        .disabled(name.isEmpty || hostname.isEmpty || username.isEmpty)
-                }
+            .padding(16)
+        }
+        .background(Color("bgPage"))
+        .navigationTitle("add_connection")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") { save() }
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color("greenPrimary"))
+                    .disabled(name.isEmpty || hostname.isEmpty || username.isEmpty)
             }
-            .onAppear {
-                if let profile = editingProfile {
-                    name = profile.name
-                    hostname = profile.hostname
-                    port = String(profile.port)
-                    username = profile.username
-                    authMethod = profile.authMethod
-                    let profileId = profile.persistentModelID.hashValue.description
-                    password = (try? KeychainService.loadPassword(for: profileId)) ?? ""
-                    sshKey = (try? KeychainService.loadSSHKey(for: profileId)) ?? ""
-                }
+        }
+        .onAppear {
+            if let profile = editingProfile {
+                name = profile.name
+                hostname = profile.hostname
+                port = String(profile.port)
+                username = profile.username
+                authMethod = profile.authMethod
+                let profileId = profile.profileId
+                password = (try? KeychainService.loadPassword(for: profileId)) ?? ""
+                sshKey = (try? KeychainService.loadSSHKey(for: profileId)) ?? ""
             }
         }
         .preferredColorScheme(.dark)
     }
+
+    // MARK: - Basic Section
+
+    private var basicSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionLabel("// basic")
+
+            inputField(label: "name", placeholder: "my_server", text: $name)
+            inputField(label: "hostname", placeholder: "192.168.1.100", text: $hostname,
+                       autocapitalize: false)
+
+            // Port + Username side by side
+            HStack(spacing: 12) {
+                inputField(label: "port", placeholder: "22", text: $port,
+                           keyboardType: .numberPad)
+                inputField(label: "username", placeholder: "root", text: $username,
+                           autocapitalize: false)
+            }
+        }
+    }
+
+    // MARK: - Auth Section
+
+    private var authSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionLabel("// authentication")
+
+            // Segmented control
+            HStack(spacing: 0) {
+                authTab("password", isSelected: authMethod == .password) {
+                    authMethod = .password
+                }
+                authTab("ssh_key", isSelected: authMethod == .sshKey) {
+                    authMethod = .sshKey
+                }
+            }
+            .background(Color("bgSurface"))
+            .cornerRadius(4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color("borderPrimary"), lineWidth: 1)
+            )
+
+            if authMethod == .password {
+                inputField(label: "password", placeholder: "••••••••", text: $password,
+                           isSecure: true, autocapitalize: false)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("ssh_key")
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(Color("textMuted"))
+                    TextEditor(text: $sshKey)
+                        .font(.system(size: 13, design: .monospaced))
+                        .foregroundStyle(Color("textPrimary"))
+                        .scrollContentBackground(.hidden)
+                        .frame(height: 120)
+                        .padding(10)
+                        .background(Color("bgInput"))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color("borderPrimary"), lineWidth: 1)
+                        )
+                        .overlay {
+                            if sshKey.isEmpty {
+                                Text("paste your SSH private key here")
+                                    .font(.system(size: 13, design: .monospaced))
+                                    .foregroundStyle(Color("textMuted"))
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                }
+            }
+        }
+    }
+
+    // MARK: - Components
+
+    private func authTab(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 13, weight: isSelected ? .semibold : .regular, design: .monospaced))
+                .foregroundStyle(isSelected ? Color("greenPrimary") : Color("textMuted"))
+                .frame(maxWidth: .infinity)
+                .frame(height: 40)
+                .background(isSelected ? Color("greenPrimary").opacity(0.1) : Color.clear)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func inputField(
+        label: String,
+        placeholder: String,
+        text: Binding<String>,
+        isSecure: Bool = false,
+        autocapitalize: Bool = true,
+        keyboardType: UIKeyboardType = .default
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.system(size: 12, design: .monospaced))
+                .foregroundStyle(Color("textMuted"))
+
+            Group {
+                if isSecure {
+                    SecureField(placeholder, text: text)
+                } else {
+                    TextField(placeholder, text: text)
+                        .textInputAutocapitalization(autocapitalize ? .sentences : .never)
+                        .keyboardType(keyboardType)
+                }
+            }
+            .font(.system(size: 14, design: .monospaced))
+            .foregroundStyle(Color("textPrimary"))
+            .autocorrectionDisabled()
+            .padding(.horizontal, 12)
+            .frame(height: 44)
+            .background(Color("bgInput"))
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color("borderPrimary"), lineWidth: 1)
+            )
+        }
+    }
+
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 11, design: .monospaced))
+            .foregroundStyle(Color("textTertiary"))
+    }
+
+    // MARK: - Actions
 
     private func save() {
         let portNumber = Int(port) ?? 22
@@ -153,7 +278,7 @@ struct ConnectionFormView: View {
             profile.port = portNumber
             profile.username = username
             profile.authMethod = authMethod
-            saveCredentials(for: profile.persistentModelID.hashValue.description)
+            saveCredentials(for: profile.profileId)
         } else {
             let profile = ConnectionProfile(
                 name: name,
@@ -163,9 +288,8 @@ struct ConnectionFormView: View {
                 authMethod: authMethod
             )
             modelContext.insert(profile)
-            // Save credentials after insert so we have a persistent ID
             try? modelContext.save()
-            saveCredentials(for: profile.persistentModelID.hashValue.description)
+            saveCredentials(for: profile.profileId)
         }
 
         dismiss()

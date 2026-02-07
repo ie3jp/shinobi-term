@@ -38,20 +38,20 @@ iPhone/iPad から Apple Silicon Mac に SSH 接続し、Mac 上の **tmux セ�
 | Component | Library / Tool | Purpose |
 |-----------|---------------|---------|
 | UI Framework | SwiftUI | App UI, settings, connection management |
-| Terminal Emulation | [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) | xterm-compatible terminal emulator with CJK support |
-| SSH Connection | [NMSSH](https://github.com/NMSSH/NMSSH) or [Citadel](https://github.com/orlandos-nl/Citadel) (SSH2 via Swift NIO) | SSH2 protocol implementation |
-| Font Rendering | System fonts + custom font loading | CJK fallback chain |
-| Data Persistence | SwiftData or UserDefaults | Connection profiles, settings |
+| Terminal Emulation | [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) (main branch) | xterm-compatible terminal emulator with CJK support |
+| SSH Connection | [Citadel](https://github.com/orlandos-nl/Citadel) (Pure Swift, SwiftNIO) | SSH2 protocol implementation |
+| Font Rendering | System fonts (Menlo + Hiragino Sans fallback) | CJK fallback chain |
+| Data Persistence | SwiftData | Connection profiles, settings |
 | Keychain | iOS Keychain Services | SSH key and password storage |
+| Project Generator | [XcodeGen](https://github.com/yonaskolb/XcodeGen) | project.yml → .xcodeproj |
 | UI Design Tool | [Pencil](https://www.pencil.dev/) | UI/UXデザイン（Claude Code MCP連携済み） |
 
-### Alternative SSH Libraries
+### SSH Library: Citadel
 
-- **NMSSH**: Mature, wraps libssh2, Obj-C but usable from Swift. Well-documented.
-- **Citadel**: Pure Swift, built on SwiftNIO. Modern but less battle-tested.
-- **SwiftSH**: Another libssh2 wrapper, simpler API.
-
-**Recommendation**: Start with NMSSH for stability, consider migrating to Citadel later for a pure-Swift stack.
+Pure Swift implementation built on SwiftNIO を採用。主な利点:
+- `SSHClient.executeCommand()` で PTY を介さないクリーンなコマンド実行（tmux ls 等に使用）
+- `withPTY()` でインタラクティブターミナルセッション
+- SwiftNIO ベースの非同期 I/O
 
 ---
 
@@ -83,21 +83,23 @@ iPhone/iPad から Apple Silicon Mac に SSH 接続し、Mac 上の **tmux セ�
 
 ### Data Flow
 
-1. User selects a connection profile → `ConnectionManager` establishes SSH session
-2. SSH session opens a PTY (pseudo-terminal) channel
-3. PTY stdout → `SwiftTerm` processes escape sequences and renders to `TerminalView`
-4. User keyboard input → `SwiftTerm` → PTY stdin → remote shell
-5. `SwiftTerm` handles CJK character width (wcwidth) for correct cursor positioning
+1. User selects a connection profile → `SSHConnectionManager` creates/retrieves `SSHSession`
+2. `SSHSession.connect()` → Citadel `SSHClient.connect()` で SSH 接続確立
+3. `startPTYSession()` → `client.withPTY()` で PTY チャネル開設
+4. PTY stdout → `AsyncStream` → `onDataReceived` callback → SwiftTerm `feed()`
+5. User keyboard input → SwiftTerm → `AsyncStream<ByteBuffer>` → PTY stdin → remote shell
+6. tmux セッション一覧取得は `SSHClient.executeCommand()` で PTY を介さず直接実行
 
 ### tmux Attach Flow
 
 ```
 User taps "tmux Attach"
-  → セッション名入力（or tmux ls から選択）
-  → SSH接続確立（未接続の場合）
-  → PTY channel で `tmux a -t <session_name>` を実行
+  → SSHSession.connect() で接続確立
+  → SSHClient.executeCommand("bash -lc 'tmux ls'") でセッション一覧取得
+  → ユーザーがセッション選択 or 手動入力
+  → TerminalContainerView に initialCommand として tmux コマンドを渡す
+  → .task で LANG 設定後、tmux a -t <name> || tmux new -s <name> を送信
   → Claude Code のターミナル UI がそのまま表示される
-  → 自然言語で Claude Code と対話開始
 ```
 
 ---
@@ -108,28 +110,30 @@ User taps "tmux Attach"
 
 #### Connection Management
 
-- [ ] Add / edit / delete SSH connection profiles
-- [ ] Fields: name, hostname, port (default 22), username, auth method
-- [ ] Authentication: password, SSH key (Ed25519, RSA), key + passphrase
+- [x] Add / edit / delete SSH connection profiles
+- [x] Fields: name, hostname, port (default 22), username, auth method
+- [x] Authentication: password
+- [ ] Authentication: SSH key (Ed25519, RSA), key + passphrase
 - [ ] Import SSH keys from Files app
 - [ ] Generate SSH key pair on device
-- [ ] Store credentials in iOS Keychain
+- [x] Store credentials in iOS Keychain (stable UUID-based profileId)
 - [ ] Quick connect: manual hostname:port input
 
 #### tmux Attach（Claude Code 連携）
 
-- [ ] 「tmux Attach」ボタンをメイン UI に配置
-- [ ] タップ → セッション名の入力ダイアログ表示
-- [ ] `tmux a -t <session_name>` を SSH 経由で実行してアタッチ
-- [ ] 直近のセッション名を履歴として保存・サジェスト
-- [ ] `tmux ls` の結果からセッション一覧を取得し選択可能に
-- [ ] アクティブなセッションがない場合のエラーハンドリング
+- [x] 「tmux Attach」ボタンをメイン UI に配置
+- [x] `tmux ls` の結果からセッション一覧を取得し選択可能に（executeCommand 使用）
+- [x] セッション選択 or 手動入力でアタッチ
+- [x] `tmux a -t <name> || tmux new -s <name>` で存在しない場合は新規作成
+- [x] 直近のセッション名を履歴として保存（lastTmuxSession）
+- [x] 切断後の再アタッチ（自動再接続）
+- [x] CJK 環境変数の自動設定（LANG=en_US.UTF-8）
 
 #### Terminal
 
-- [ ] xterm-256color terminal emulation via SwiftTerm
-- [ ] Correct CJK character rendering (double-width characters)
-- [ ] Font configuration with CJK fallback chain
+- [x] xterm-256color terminal emulation via SwiftTerm
+- [x] Correct CJK character rendering (double-width characters)
+- [x] Font configuration with CJK fallback chain (Menlo + Hiragino Sans)
 - [ ] Configurable font size (pinch to zoom)
 - [ ] Color scheme selection (dark / light / custom)
 - [ ] Copy & paste support
@@ -137,15 +141,15 @@ User taps "tmux Attach"
 
 #### Input
 
-- [ ] Standard iOS keyboard input
-- [ ] Extra key row: Ctrl, Alt, Esc, Tab, arrow keys, pipe, tilde, etc.
+- [x] Standard iOS keyboard input
+- [x] Extra key row: Ctrl, Alt, Esc, Tab, arrow keys, pipe, tilde, etc.
 - [ ] Hardware keyboard support (Bluetooth / Smart Keyboard)
-- [ ] Ctrl+C, Ctrl+D, Ctrl+Z key combinations
+- [x] Ctrl+key combinations (Ctrl toggle + key → control character)
 
 #### Session Management
 
 - [ ] Multiple simultaneous sessions (tab-based)
-- [ ] Session reconnection on network change
+- [x] Session reconnection on re-attach
 - [ ] Background keepalive (within iOS limits)
 
 ### v1.1 Enhancements
@@ -308,69 +312,44 @@ UI/UXデザインは **[Pencil](https://www.pencil.dev/)** を使用して作成
 
 ```
 ShinobiTerm/
-├── ShinobiTermApp.swift              # App entry point
-├── Package.swift                     # SPM dependencies
+├── project.yml                       # XcodeGen 設定
+├── ShinobiTerm/
+│   ├── ShinobiTermApp.swift          # App entry point
+│   ├── ContentView.swift             # Tab navigation (connections, settings)
+│   │
+│   ├── Models/
+│   │   └── ConnectionProfile.swift   # SSH connection data model (SwiftData)
+│   │
+│   ├── Views/
+│   │   ├── ConnectionListView.swift      # Home - connection list
+│   │   ├── ConnectionFormView.swift      # Add/edit connection
+│   │   ├── TmuxAttachView.swift          # tmux session list + attach
+│   │   ├── TerminalContainerView.swift   # Terminal + extra keys wrapper
+│   │   ├── ShinobiTerminalView.swift     # SwiftTerm UIViewRepresentable
+│   │   ├── ExtraKeysView.swift           # Custom keyboard row
+│   │   └── SettingsView.swift            # App settings + font picker
+│   │
+│   ├── Services/
+│   │   ├── SSHSession.swift              # Citadel SSH + PTY management
+│   │   ├── SSHConnectionManager.swift    # Session lifecycle (per profile)
+│   │   ├── TmuxService.swift             # tmux ls via executeCommand
+│   │   └── KeychainService.swift         # Keychain read/write
+│   │
+│   ├── Resources/
+│   │   └── Assets.xcassets/              # Color assets (dark theme)
+│   │
+│   └── Info.plist
 │
-├── Models/
-│   ├── ConnectionProfile.swift       # SSH connection data model
-│   ├── AppSettings.swift             # Global settings model
-│   └── SSHKey.swift                  # SSH key model
-│
-├── Views/
-│   ├── ConnectionListView.swift      # Home screen - list of connections
-│   ├── ConnectionFormView.swift      # Add/edit connection
-│   ├── TerminalContainerView.swift   # Terminal + extra keys wrapper
-│   ├── TerminalView.swift            # SwiftTerm integration
-│   ├── ExtraKeysView.swift           # Custom keyboard row
-│   ├── SettingsView.swift            # App settings
-│   ├── FontPickerView.swift          # Font selection with CJK preview
-│   └── KeyManagementView.swift       # SSH key management
-│
-├── Services/
-│   ├── SSHConnectionManager.swift    # SSH session lifecycle
-│   ├── KeychainService.swift         # Keychain read/write
-│   ├── SSHKeyGenerator.swift         # Key pair generation
-│   └── FontManager.swift             # Font fallback chain setup
-│
-├── Helpers/
-│   ├── CJKWidthHelper.swift          # Wide character utilities
-│   └── ColorScheme.swift             # Terminal color themes
-│
-├── Resources/
-│   └── DefaultSchemes/               # Built-in color schemes (JSON)
-│
-└── Tests/
-    ├── CJKRenderingTests.swift       # CJK width and display tests
-    └── SSHConnectionTests.swift      # Connection logic tests
+├── docs/                             # 仕様書
+└── design/                           # Pencil デザイン (.pen)
 ```
 
 ---
 
-## Dependencies (Package.swift)
+## Dependencies (via XcodeGen project.yml)
 
-```swift
-// swift-tools-version: 5.9
-import PackageDescription
-
-let package = Package(
-    name: "ShinobiTerm",
-    platforms: [.iOS(.v17)],
-    dependencies: [
-        // Terminal emulation
-        .package(url: "https://github.com/migueldeicaza/SwiftTerm.git", from: "1.0.0"),
-        // SSH connection (choose one)
-        .package(url: "https://github.com/NMSSH/NMSSH.git", from: "2.3.0"),
-        // Alternative: Citadel (pure Swift SSH)
-        // .package(url: "https://github.com/orlandos-nl/Citadel.git", from: "0.6.0"),
-    ],
-    targets: [
-        .target(
-            name: "ShinobiTerm",
-            dependencies: ["SwiftTerm", "NMSSH"]
-        ),
-    ]
-)
-```
+- **SwiftTerm** (main branch) — Terminal emulation with CJK support
+- **Citadel** (0.7.0+) — Pure Swift SSH client built on SwiftNIO
 
 ---
 
@@ -381,15 +360,15 @@ let package = Package(
 - Xcode 15+
 - iOS 17.0+ deployment target
 - Swift 5.9+
+- XcodeGen (`brew install xcodegen`)
 
 ### Development Setup
 
 ```bash
 git clone https://github.com/yourname/ShinobiTerm.git
-cd ShinobiTerm
-open ShinobiTerm.xcodeproj
-# or
-xcodebuild -scheme ShinobiTerm -destination 'platform=iOS Simulator'
+cd ShinobiTerm/ShinobiTerm
+xcodegen generate
+xcodebuild -scheme ShinobiTerm -destination 'platform=iOS Simulator,name=iPhone 16' build
 ```
 
 ### Distribution
@@ -403,63 +382,31 @@ xcodebuild -scheme ShinobiTerm -destination 'platform=iOS Simulator'
 
 ## Implementation Notes
 
-### SwiftTerm Integration
+### SwiftTerm Integration (`ShinobiTerminalView`)
 
-SwiftTerm provides `TerminalView` (UIKit) which can be wrapped in SwiftUI via `UIViewRepresentable`:
+SwiftTerm の `TerminalView` (UIKit) を `UIViewRepresentable` でラップ。
+`SSHSession.onDataReceived` コールバックで受信データを `terminalView.feed()` に転送。
 
-```swift
-struct TerminalViewWrapper: UIViewRepresentable {
-    let terminalView: TerminalView
+### SSH Session (`SSHSession`)
 
-    func makeUIView(context: Context) -> TerminalView {
-        // Configure font with CJK fallback
-        let font = FontManager.terminalFont(
-            name: settings.fontName,
-            size: settings.fontSize
-        )
-        terminalView.font = font
-        return terminalView
-    }
+Citadel の `SSHClient` を使用した SSH セッション管理:
+- `connect()` → `SSHClient.connect()` で認証・接続
+- `startPTYSession()` → `client.withPTY()` で PTY 開設、`AsyncStream<ByteBuffer>` で stdin/stdout を非同期処理
+- `send()` → stdin の `AsyncStream.Continuation` に `ByteBuffer` を yield
+- `resize()` → `TTYStdinWriter.changeSize()` でターミナルサイズ変更
+- `disconnect()` → race condition を防ぐため `client = nil` を同期的に実行
 
-    func updateUIView(_ uiView: TerminalView, context: Context) {}
-}
-```
+### tmux セッション一覧 (`TmuxService`)
 
-### SSH → SwiftTerm Bridge
+`SSHClient.executeCommand("bash -lc 'tmux ls' 2>/dev/null || true")` でクリーンな出力を取得。
+PTY を使わないため ANSI エスケープやプロンプトの汚染がない。
+`bash -lc` でログインシェルを使用し、Homebrew の tmux を PATH に含める。
 
-```swift
-class SSHTerminalDelegate: TerminalViewDelegate {
-    var sshChannel: NMSSHChannel?
+### Keychain Key の安定性
 
-    // Terminal → SSH (user input)
-    func send(source: TerminalView, data: ArraySlice<UInt8>) {
-        let bytes = Array(data)
-        sshChannel?.write(Data(bytes))
-    }
-
-    // SSH → Terminal (remote output)
-    func onDataReceived(data: Data) {
-        let bytes = [UInt8](data)
-        terminalView.feed(byteArray: bytes)
-    }
-}
-```
-
-### Keychain Storage
-
-```swift
-class KeychainService {
-    static func save(password: String, for profile: ConnectionProfile) throws {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: profile.id.uuidString,
-            kSecValueData as String: password.data(using: .utf8)!,
-            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
-        ]
-        SecItemAdd(query as CFDictionary, nil)
-    }
-}
-```
+`ConnectionProfile.profileId` に `UUID().uuidString` を使用。
+Swift の `hashValue` はプロセスごとにランダム化されるため、Keychain キーには不適。
+`@Attribute(.unique)` で SwiftData の一意性を保証。
 
 ---
 
@@ -519,7 +466,6 @@ class KeychainService {
 ## References
 
 - [SwiftTerm GitHub](https://github.com/migueldeicaza/SwiftTerm)
-- [NMSSH GitHub](https://github.com/NMSSH/NMSSH)
 - [Citadel SSH GitHub](https://github.com/orlandos-nl/Citadel)
 - [Unicode East Asian Width](https://www.unicode.org/reports/tr11/)
 - [xterm control sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)

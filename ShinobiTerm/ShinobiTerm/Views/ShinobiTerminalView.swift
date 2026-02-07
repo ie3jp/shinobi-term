@@ -45,10 +45,11 @@ struct ShinobiTerminalView: UIViewRepresentable {
             self.onSizeChanged = onSizeChanged
         }
 
+        @MainActor
         func setupDataReceiver() {
             session.onDataReceived = { [weak self] data in
                 guard let terminalView = self?.terminalView else { return }
-                let bytes = [UInt8](data)
+                let bytes = ArraySlice([UInt8](data))
                 terminalView.feed(byteArray: bytes)
             }
         }
@@ -57,7 +58,9 @@ struct ShinobiTerminalView: UIViewRepresentable {
 
         func send(source: TerminalView, data: ArraySlice<UInt8>) {
             let sendData = Data(data)
-            session.send(sendData)
+            Task { @MainActor in
+                session.send(sendData)
+            }
         }
 
         func scrolled(source: TerminalView, position: Double) {}
@@ -65,7 +68,9 @@ struct ShinobiTerminalView: UIViewRepresentable {
         func setTerminalTitle(source: TerminalView, title: String) {}
 
         func sizeChanged(source: TerminalView, newCols: Int, newRows: Int) {
-            session.resize(columns: newCols, rows: newRows)
+            Task { @MainActor in
+                session.resize(columns: newCols, rows: newRows)
+            }
             onSizeChanged?(newCols, newRows)
         }
 

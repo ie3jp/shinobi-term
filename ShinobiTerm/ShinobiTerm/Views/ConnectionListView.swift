@@ -6,162 +6,181 @@ struct ConnectionListView: View {
     @Query(sort: \ConnectionProfile.lastConnectedAt, order: .reverse) private var profiles: [ConnectionProfile]
     @StateObject private var connectionManager = SSHConnectionManager()
     @State private var showingAddForm = false
-    @State private var showingTmuxAttach = false
-    @State private var selectedProfile: ConnectionProfile?
+    @State private var selectedTmuxProfile: ConnectionProfile?
     @State private var activeTerminalProfile: ConnectionProfile?
+    @State private var quickConnectText = ""
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // tmux Attach button
-                tmuxAttachButton
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16)
-                    .padding(.bottom, 12)
+                // Nav bar
+                navBar
 
-                // Section label
-                HStack {
-                    Text("SAVED CONNECTIONS")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
-                        .tracking(1)
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
+                ScrollView {
+                    VStack(spacing: 12) {
+                        // Quick attach section
+                        quickAttachSection
 
-                // Connection list
-                if profiles.isEmpty {
-                    emptyState
-                } else {
-                    connectionList
-                }
+                        // Connections section
+                        connectionsSection
 
-                Spacer()
-            }
-            .background(Color(red: 0.05, green: 0.07, blue: 0.09))
-            .navigationTitle("Connections")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingAddForm = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
-                            .frame(width: 32, height: 32)
-                            .background(.indigo)
-                            .clipShape(Circle())
+                        // Quick connect section
+                        quickConnectSection
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 20)
                 }
             }
-            .sheet(isPresented: $showingAddForm) {
+            .background(Color("bgPage"))
+            .navigationBarHidden(true)
+            .navigationDestination(isPresented: $showingAddForm) {
                 ConnectionFormView()
             }
-            .sheet(item: $selectedProfile) { profile in
+            .navigationDestination(item: $selectedTmuxProfile) { profile in
                 TmuxAttachView(
                     profile: profile,
                     connectionManager: connectionManager
                 )
             }
             .fullScreenCover(item: $activeTerminalProfile) { profile in
-                if let session = connectionManager.sessions[profile.persistentModelID.hashValue.description] {
+                let profileId = profile.profileId
+                if let session = connectionManager.sessions[profileId] {
                     TerminalContainerView(
                         session: session,
-                        profileName: profile.name
+                        profileName: profile.name,
+                        tmuxSession: profile.lastTmuxSession
                     )
+                } else {
+                    Text("Session not found")
+                        .foregroundStyle(Color("textMuted"))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(.black)
                 }
             }
         }
-        .preferredColorScheme(.dark)
     }
 
-    private var tmuxAttachButton: some View {
-        Button {
-            if profiles.count == 1, let profile = profiles.first {
-                selectedProfile = profile
-            } else {
-                showingTmuxAttach = true
-            }
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "terminal")
-                    .font(.title3)
-                    .foregroundStyle(.white)
+    // MARK: - Nav Bar
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("tmux Attach")
-                        .font(.callout)
-                        .fontWeight(.semibold)
+    private var navBar: some View {
+        HStack {
+            Text("shinobi_term")
+                .font(.system(size: 20, weight: .bold, design: .monospaced))
+                .foregroundStyle(.white)
+            Spacer()
+            NavigationLink {
+                SettingsView()
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 18))
+                    .foregroundStyle(Color("textTertiary"))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+
+    // MARK: - Quick Attach
+
+    private var quickAttachSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel("// quick_attach")
+
+            Button {
+                if profiles.count == 1, let profile = profiles.first {
+                    selectedTmuxProfile = profile
+                } else if profiles.count > 1 {
+                    // Show profile picker for tmux
+                    selectedTmuxProfile = profiles.first
+                }
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "square.grid.2x2")
+                        .font(.system(size: 16))
                         .foregroundStyle(.white)
-                    Text("Connect to Claude Code session")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
+                    Text("tmux attach")
+                        .font(.system(size: 15, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.white)
+                    Spacer()
                 }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.white.opacity(0.6))
-            }
-            .padding(.horizontal, 20)
-            .frame(height: 56)
-            .background(
-                LinearGradient(
-                    colors: [Color(red: 0.25, green: 0.73, blue: 0.31), Color(red: 0.18, green: 0.63, blue: 0.26)],
-                    startPoint: .top,
-                    endPoint: .bottom
+                .padding(.horizontal, 16)
+                .frame(height: 48)
+                .background(
+                    LinearGradient(
+                        colors: [Color("greenPrimary"), Color("greenPrimary").opacity(0.8)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
-            )
-            .cornerRadius(14)
+                .cornerRadius(10)
+            }
         }
     }
 
-    private var connectionList: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(profiles) { profile in
-                    connectionRow(profile)
+    // MARK: - Connections
+
+    private var connectionsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                sectionLabel("// connections")
+                Spacer()
+                Button {
+                    showingAddForm = true
+                } label: {
+                    Text("+ add")
+                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color("textMuted"))
                 }
             }
-            .padding(.horizontal, 16)
+
+            if profiles.isEmpty {
+                emptyState
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(profiles) { profile in
+                        connectionCard(profile)
+                    }
+                }
+            }
         }
     }
 
-    private func connectionRow(_ profile: ConnectionProfile) -> some View {
+    private func connectionCard(_ profile: ConnectionProfile) -> some View {
         Button {
             connectToProfile(profile)
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: "desktopcomputer")
-                    .font(.title3)
-                    .frame(width: 44, height: 44)
-                    .background(Color(white: 0.13))
-                    .cornerRadius(10)
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color("greenPrimary"))
+                    .frame(width: 40, height: 40)
+                    .background(Color("bgSurface"))
+                    .cornerRadius(8)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(profile.name)
-                        .font(.body)
-                        .fontWeight(.medium)
-                    Text("\(profile.username)@\(profile.hostname)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 15, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(Color("textPrimary"))
+                    Text("\(profile.username)@\(profile.hostname):\(profile.port)")
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(Color("textMuted"))
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color("textTertiary"))
             }
-            .padding(.vertical, 14)
-            .padding(.horizontal, 12)
+            .padding(12)
+            .background(Color("bgSurface"))
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color("borderPrimary"), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
-        .overlay(alignment: .bottom) {
-            Divider().padding(.leading, 68)
-        }
         .contextMenu {
             Button("Edit") {
                 // TODO: Edit profile
@@ -175,23 +194,69 @@ struct ConnectionListView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             Image(systemName: "server.rack")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-            Text("No connections yet")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            Text("Tap + to add your first SSH connection")
-                .font(.subheadline)
-                .foregroundStyle(.tertiary)
+                .font(.system(size: 32))
+                .foregroundStyle(Color("textTertiary"))
+            Text("no connections yet")
+                .font(.system(size: 13, design: .monospaced))
+                .foregroundStyle(Color("textMuted"))
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.top, 60)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+
+    // MARK: - Quick Connect
+
+    private var quickConnectSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel("// quick_connect")
+
+            HStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: "bolt")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color("textTertiary"))
+                    TextField("user@host:port", text: $quickConnectText)
+                        .font(.system(size: 14, design: .monospaced))
+                        .foregroundStyle(Color("textPrimary"))
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
+                .padding(.horizontal, 12)
+                .frame(height: 44)
+                .background(Color("bgSurface"))
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color("borderPrimary"), lineWidth: 1)
+                )
+
+                Button {
+                    quickConnect()
+                } label: {
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .background(Color("greenPrimary"))
+                        .cornerRadius(8)
+                }
+                .disabled(quickConnectText.isEmpty)
+            }
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 11, design: .monospaced))
+            .foregroundStyle(Color("textTertiary"))
     }
 
     private func connectToProfile(_ profile: ConnectionProfile) {
-        let profileId = profile.persistentModelID.hashValue.description
+        let profileId = profile.profileId
         let session = connectionManager.createSession(for: profileId)
 
         Task {
@@ -207,8 +272,39 @@ struct ConnectionListView: View {
         }
     }
 
+    private func quickConnect() {
+        // Parse "user@host:port" format
+        let text = quickConnectText
+        guard let atIndex = text.firstIndex(of: "@") else { return }
+        let username = String(text[text.startIndex..<atIndex])
+        let rest = String(text[text.index(after: atIndex)...])
+        let parts = rest.split(separator: ":", maxSplits: 1)
+        let hostname = String(parts[0])
+        let port = parts.count > 1 ? Int(parts[1]) ?? 22 : 22
+
+        let session = connectionManager.createSession(for: "quick-\(hostname)")
+        Task {
+            await session.connect(
+                hostname: hostname,
+                port: port,
+                username: username,
+                password: ""
+            )
+            // Create a temporary profile for the terminal view
+            let profile = ConnectionProfile(
+                name: hostname,
+                hostname: hostname,
+                port: port,
+                username: username
+            )
+            modelContext.insert(profile)
+            profile.lastConnectedAt = Date()
+            activeTerminalProfile = profile
+        }
+    }
+
     private func deleteProfile(_ profile: ConnectionProfile) {
-        let profileId = profile.persistentModelID.hashValue.description
+        let profileId = profile.profileId
         try? KeychainService.deleteAll(for: profileId)
         connectionManager.removeSession(for: profileId)
         modelContext.delete(profile)

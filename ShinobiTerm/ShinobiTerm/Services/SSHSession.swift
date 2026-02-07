@@ -13,7 +13,7 @@ enum SSHSessionState: Equatable {
 final class SSHSession: ObservableObject {
     @Published var state: SSHSessionState = .disconnected
 
-    private var client: SSHClient?
+    private(set) var client: SSHClient?
     private var sessionTask: Task<Void, Never>?
 
     var onDataReceived: ((Data) -> Void)?
@@ -58,9 +58,10 @@ final class SSHSession: ObservableObject {
         stdinContinuation = nil
         ttyWriter = nil
 
+        let oldClient = client
+        client = nil
         Task {
-            try? await client?.close()
-            client = nil
+            try? await oldClient?.close()
         }
 
         state = .disconnected

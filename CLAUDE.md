@@ -35,6 +35,25 @@ xcodegen generate
 xcodebuild -scheme ShinobiTerm -destination 'platform=iOS Simulator,name=iPhone 16' build
 ```
 
+## 実装済み機能
+
+- SSH 接続管理（接続プロファイルの追加・編集・削除）
+- パスワード認証（Keychain 保存、stable UUID ベースのキー）
+- ターミナルエミュレーション（SwiftTerm、xterm-256color）
+- CJK 文字の正常表示（Menlo + Hiragino Sans フォールバック、LANG 自動設定）
+- tmux セッション一覧取得（`executeCommand` による直接実行）
+- tmux アタッチ / 新規セッション作成
+- 切断後の再接続・再アタッチ
+- 拡張キーボード（Ctrl, Alt, Esc, Tab, 矢印キー等）
+- 設定画面（フォント選択）
+
+## 既知の技術的注意点
+
+- `persistentModelID.hashValue` は Swift のハッシュランダム化でプロセスごとに変わるため Keychain キーに使用不可 → `profileId: UUID` で解決済み
+- tmux セッション一覧は `SSHClient.executeCommand("bash -lc 'tmux ls'")` で取得。PTY 経由だと ANSI エスケープで汚染される
+- `disconnect()` 内の `client = nil` は同期的に実行する必要あり（非同期にすると再接続時に race condition）
+- TerminalContainerView の `.task` で LANG 設定 → initialCommand の順で送信。SwiftTerm の `onDataReceived` セットアップ待ちに 300ms の遅延
+
 ## 規約
 
 - 共有学習ファイル参照: /Users/you/Library/CloudStorage/Dropbox/_share/learned/

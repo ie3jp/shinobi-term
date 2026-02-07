@@ -6,6 +6,7 @@ struct ShinobiTerminalView: UIViewRepresentable {
     let session: SSHSession
     var fontName: String = "Menlo"
     var fontSize: CGFloat = 14
+    var scrollbackLines: Int = 10000
     var onSizeChanged: ((Int, Int) -> Void)?
 
     func makeUIView(context: Context) -> TerminalView {
@@ -16,6 +17,8 @@ struct ShinobiTerminalView: UIViewRepresentable {
 
         let font = FontManager.terminalFont(name: fontName, size: fontSize)
         terminalView.font = font
+
+        terminalView.getTerminal().changeHistorySize(scrollbackLines)
 
         terminalView.terminalDelegate = context.coordinator
         terminalView.becomeFirstResponder()

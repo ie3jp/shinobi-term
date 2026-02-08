@@ -20,6 +20,7 @@
 		92B9AE7BF6C93FEF441B83D2 /* TerminalContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E92AE15D41269F62CD134A9 /* TerminalContainerView.swift */; };
 		9451BFA8DDFD46C034D9E540 /* TmuxAttachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E8EEEA242FDA7536113AB6 /* TmuxAttachView.swift */; };
 		A513B7E3EE94DFB9DBCA4976 /* ShinobiTermApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97F07970261788109324294 /* ShinobiTermApp.swift */; };
+		AA24F2A6FA7A6846681E0FF8 /* InputBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBC2F0DE456D723FB2E0A7B /* InputBarView.swift */; };
 		AD67D1388B126606BEBB95D6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FBFC9C30A271871F6C06C6 /* SettingsView.swift */; };
 		C7D96C3496C225E6D4891E13 /* ConnectionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3321521A940512BB919276 /* ConnectionFormView.swift */; };
 		CF4BB5E4CA084CDC5F12D319 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE11118F620376902A1388DE /* Assets.xcassets */; };
@@ -29,6 +30,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0DBC2F0DE456D723FB2E0A7B /* InputBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputBarView.swift; sourceTree = "<group>"; };
 		130BFE3A60EBA7017FA548C6 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		14A73AD48083E16C271BE098 /* TmuxService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TmuxService.swift; sourceTree = "<group>"; };
 		26D05DA878BE9BBDBF5ADE11 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
@@ -97,6 +99,7 @@
 				EC3321521A940512BB919276 /* ConnectionFormView.swift */,
 				EE26CC5BEAEC0333CAE50B50 /* ConnectionListView.swift */,
 				997FCA12B10C25C9CB97B075 /* ExtraKeysView.swift */,
+				0DBC2F0DE456D723FB2E0A7B /* InputBarView.swift */,
 				D5FBFC9C30A271871F6C06C6 /* SettingsView.swift */,
 				BF43333A82B53B852FA8F1D8 /* ShinobiTerminalView.swift */,
 				4E92AE15D41269F62CD134A9 /* TerminalContainerView.swift */,
@@ -221,6 +224,7 @@
 				2A83F96C43778DEAD96242FD /* ContentView.swift in Sources */,
 				11C4DC91DB7823D380CD190E /* ExtraKeysView.swift in Sources */,
 				6E646055AE492952F340D48A /* FontManager.swift in Sources */,
+				AA24F2A6FA7A6846681E0FF8 /* InputBarView.swift in Sources */,
 				63B428D8E299375C4363E76E /* KeychainService.swift in Sources */,
 				F445099755E698984D90E636 /* SSHConnectionManager.swift in Sources */,
 				12207A3BD8CCEDC47FB48765 /* SSHSession.swift in Sources */,

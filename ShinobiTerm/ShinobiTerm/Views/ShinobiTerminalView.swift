@@ -7,6 +7,7 @@ struct ShinobiTerminalView: UIViewRepresentable {
     var fontName: String = "Menlo"
     var fontSize: CGFloat = 14
     var scrollbackLines: Int = 10000
+    var autoFocus: Bool = true
     var onSizeChanged: ((Int, Int) -> Void)?
 
     func makeUIView(context: Context) -> TerminalView {
@@ -21,7 +22,9 @@ struct ShinobiTerminalView: UIViewRepresentable {
         terminalView.getTerminal().changeHistorySize(scrollbackLines)
 
         terminalView.terminalDelegate = context.coordinator
-        terminalView.becomeFirstResponder()
+        if autoFocus {
+            terminalView.becomeFirstResponder()
+        }
 
         context.coordinator.terminalView = terminalView
         context.coordinator.setupDataReceiver()

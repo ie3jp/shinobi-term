@@ -4,6 +4,7 @@ struct ExtraKeysView: View {
     var onKey: (ExtraKey) -> Void
     var isCtrlActive: Bool = false
     var isAltActive: Bool = false
+    var isScrollActive: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,13 +23,17 @@ struct ExtraKeysView: View {
                     .frame(height: 1)
             }
 
-            // Row 2: ←, ↓, → (centered)
+            // Row 2: Scroll, ←, ↓, →, ⌨
             HStack(spacing: 4) {
+                extraKeyButton(.scroll)
+                    .frame(maxWidth: .infinity)
                 Spacer()
                 ForEach(ExtraKey.bottomRow, id: \.label) { key in
                     extraKeyButton(key)
                 }
                 Spacer()
+                extraKeyButton(.keyboard)
+                    .frame(maxWidth: .infinity)
             }
             .padding(.horizontal, 6)
             .padding(.bottom, 4)
@@ -37,7 +42,9 @@ struct ExtraKeysView: View {
     }
 
     private func extraKeyButton(_ key: ExtraKey) -> some View {
-        let isActive = (key == .ctrl && isCtrlActive) || (key == .alt && isAltActive)
+        let isActive = (key == .ctrl && isCtrlActive)
+            || (key == .alt && isAltActive)
+            || (key == .scroll && isScrollActive)
 
         return Button {
             onKey(key)
@@ -57,6 +64,7 @@ struct ExtraKeysView: View {
 enum ExtraKey: Equatable {
     case esc, ctrl, alt, tab, tilde, pipe, slash
     case arrowUp, arrowDown, arrowLeft, arrowRight
+    case scroll, keyboard
 
     var label: String {
         switch self {
@@ -71,6 +79,8 @@ enum ExtraKey: Equatable {
         case .arrowDown: return "\u{2193}"
         case .arrowLeft: return "\u{2190}"
         case .arrowRight: return "\u{2192}"
+        case .scroll: return "Scroll"
+        case .keyboard: return "\u{2328}"
         }
     }
 
@@ -78,6 +88,8 @@ enum ExtraKey: Equatable {
         switch self {
         case .tilde, .pipe, .slash: return 15
         case .arrowUp, .arrowDown, .arrowLeft, .arrowRight: return 14
+        case .scroll: return 12
+        case .keyboard: return 16
         default: return 13
         }
     }
@@ -93,7 +105,7 @@ enum ExtraKey: Equatable {
         case .arrowDown: return Data([0x1B, 0x5B, 0x42])
         case .arrowRight: return Data([0x1B, 0x5B, 0x43])
         case .arrowLeft: return Data([0x1B, 0x5B, 0x44])
-        case .ctrl, .alt: return Data()
+        case .ctrl, .alt, .scroll, .keyboard: return Data()
         }
     }
 

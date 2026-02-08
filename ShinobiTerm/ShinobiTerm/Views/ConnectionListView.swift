@@ -90,7 +90,6 @@ struct ConnectionListView: View {
                 if profiles.count == 1, let profile = profiles.first {
                     selectedTmuxProfile = profile
                 } else if profiles.count > 1 {
-                    // Show profile picker for tmux
                     selectedTmuxProfile = profiles.first
                 }
             } label: {
@@ -114,6 +113,7 @@ struct ConnectionListView: View {
                 )
                 .cornerRadius(10)
             }
+
         }
     }
 

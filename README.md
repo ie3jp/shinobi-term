@@ -5,12 +5,12 @@
 <h1 align="center">Shinobi Term</h1>
 
 <p align="center">
-  <strong>iPhone から Claude Code を使う最短経路</strong><br>
-  tmux セッションにワンタップ attach する iOS SSH クライアント
+  <strong>One-tap tmux attach from your iPhone.</strong><br>
+  An iOS SSH client built for Claude Code over Tailscale.
 </p>
 
 <p align="center">
-  <a href="https://github.com/IE3/shinobi-term/blob/main/LICENSE">
+  <a href="https://github.com/ie3jp/shinobi-term/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT">
   </a>
   <img src="https://img.shields.io/badge/platform-iOS%2017%2B-blue.svg" alt="Platform: iOS 17+">
@@ -19,43 +19,55 @@
 
 ---
 
-## Why
-
-iPhone + Tailscale + ShinobiTerm → Mac の tmux → Claude Code
-
-2025年、Claude Code はターミナルで動く AI 開発ツールになった。SSH で繋がればそのまま使える。でも iOS の既存 SSH アプリだと tmux セッションに手動で attach する手間がある。ShinobiTerm ならワンタップ。
-
-自分用に作った。OSS で無料。
-
 ```
-┌──────────────┐  Tailscale  ┌──────────────────────────┐
-│  iPhone      │ ─────────── │  Mac (自宅 / オフィス)    │
-│  ShinobiTerm │     SSH     │  tmux → Claude Code      │
-│  ワンタップ   │  ─────────→ │  自然言語で開発           │
-└──────────────┘             └──────────────────────────┘
+iPhone (ShinobiTerm) ── Tailscale / SSH ──→ Mac (tmux → Claude Code)
 ```
 
-### Use Case
+Leave Claude Code running in tmux on your Mac. Pick up where you left off from anywhere — one tap.
 
-> Access Claude Code running in tmux on your home Mac via Tailscale — attach to your session with one tap.
-
-1. 自宅 Mac で `tmux new -s dev` → `claude` を起動しておく
-2. 外出先から iPhone で ShinobiTerm を開く
-3. tmux attach をタップ → セッション選択 → Claude Code が動いてるターミナルに即接続
-
-<!-- TODO: screenshots here -->
-<!-- [スクショ: ホーム画面] → [tmuxセッション一覧] → [Claude Codeターミナル] -->
+<!-- TODO: screenshots -->
 
 ## Features
 
-- **tmux ワンタップ attach** — セッション一覧から選択、または新規作成してすぐ接続
-- **Claude Code companion** — tmux 上の Claude Code と自然言語で開発
-- **CJK-first** — 日本語・中国語・韓国語が正しく表示される（Menlo + Hiragino Sans フォールバック）
-- **拡張キーボード** — Ctrl, Alt, Esc, Tab, 矢印キー
-- **SSH 鍵認証** — Ed25519 鍵ペアをデバイス上で生成、秘密鍵は Keychain に安全に保管
-- **セキュア** — パスワード・秘密鍵は iOS Keychain のみに保存、外部送信なし
-- **スクロールモード** — tmux copy-mode 連動で出力履歴を閲覧（tmux.conf の設定不要）
-- **無料・OSS** — MIT License、広告なし、トラッキングなし
+- **One-tap tmux attach** — Browse sessions, select, and connect instantly
+- **CJK-first rendering** — Japanese, Chinese, and Korean text displays correctly (Menlo + Hiragino Sans fallback)
+- **Extended keyboard** — Ctrl, Alt, Esc, Tab, arrow keys
+- **SSH key auth** — Generate Ed25519 keys on-device; private keys stored in iOS Keychain
+- **Scroll mode** — Browse output history with automatic tmux copy-mode integration
+- **Free & open source** — MIT License, no ads, no tracking
+
+## Quick Start
+
+### 1. Mac Setup
+
+Enable SSH, install tmux and Claude Code:
+
+```bash
+# System Settings → General → Sharing → Remote Login → ON
+
+brew install tmux
+npm install -g @anthropic-ai/claude-code
+export ANTHROPIC_API_KEY="sk-ant-..."  # also add to ~/.zshrc
+```
+
+Start a session:
+
+```bash
+tmux new -s dev
+claude
+```
+
+### 2. Remote Access (Recommended)
+
+Install [Tailscale](https://tailscale.com/) on both Mac and iPhone. Use the Tailscale IP (`100.x.x.x`) as the host in ShinobiTerm.
+
+### 3. Connect from iPhone
+
+1. Open ShinobiTerm → tap **+ add**
+2. Enter host, port (`22`), and credentials
+3. Tap **tmux attach** → select your session → done
+
+> tmux sessions persist across disconnects — your work is never lost.
 
 ## Design
 
@@ -63,100 +75,22 @@ iPhone + Tailscale + ShinobiTerm → Mac の tmux → Claude Code
   <img src="design/pencil2.png" width="800" alt="Shinobi Term UI Design">
 </p>
 
-UI デザインは [Pencil](https://pencil.dev/) で作成。Claude Code MCP 連携によりデザインと実装を高速にイテレーション。
-
-## Getting Started
-
-### Mac 側の準備
-
-#### 1. SSH サーバーを有効化
-
-```
-システム設定 → 一般 → 共有 → リモートログイン → ON
-```
-
-#### 2. tmux をインストール
-
-```bash
-brew install tmux
-```
-
-推奨の `~/.tmux.conf`:
-
-```bash
-set -g default-terminal "xterm-256color"
-set -ga terminal-overrides ",xterm-256color:Tc"
-setw -g mode-keys vi
-```
-
-#### 3. Claude Code をインストール
-
-```bash
-npm install -g @anthropic-ai/claude-code
-```
-
-API キーを設定:
-
-```bash
-export ANTHROPIC_API_KEY="sk-ant-..."
-# ~/.zshrc にも追記
-```
-
-#### 4. tmux セッションを起動
-
-```bash
-tmux new -s dev
-claude
-```
-
-### 外出先からのアクセス（推奨）
-
-[Tailscale](https://tailscale.com/) を Mac と iPhone 両方にインストールすると、同じネットワークにいなくても SSH 接続できます。
-
-```bash
-# Mac 側
-brew install tailscale
-# Tailscale アプリで Sign in → SSH を有効化
-
-# iPhone 側
-# App Store から Tailscale をインストール → 同アカウントで Sign in
-```
-
-Tailscale の IP（100.x.x.x）を ShinobiTerm の接続先に設定。
-
-### iPhone 側
-
-1. ShinobiTerm を開く
-2. `+ add` で接続プロファイルを作成
-   - **Host**: Mac の IP（LAN: `192.168.x.x` / Tailscale: `100.x.x.x`）
-   - **Port**: `22`
-   - **Username / Password**: Mac のログインユーザー（または SSH 鍵認証）
-3. **tmux attach** をタップ → セッション選択 → 接続完了
-
-### Tips
-
-- `LANG=en_US.UTF-8` は接続時に自動設定されます
-- tmux セッションはデタッチしても維持されるため、接続が切れても作業は失われません
-- スクロールモードで出力履歴を閲覧でき、コマンド送信時に自動解除されます
-
 ## Tech Stack
 
-| Component   | Library                                                                  |
-| ----------- | ------------------------------------------------------------------------ |
-| UI          | SwiftUI                                                                  |
-| Terminal    | [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) (xterm-256color) |
-| SSH         | [Citadel](https://github.com/orlandos-nl/Citadel) (Pure Swift, SwiftNIO) |
-| SSH Keys    | Apple CryptoKit (Ed25519)                                                |
-| Data        | SwiftData                                                                |
-| Credentials | iOS Keychain                                                             |
-| Project     | [XcodeGen](https://github.com/yonaskolb/XcodeGen)                        |
+| Component | Library |
+|-----------|---------|
+| UI | SwiftUI |
+| Terminal | [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) (xterm-256color) |
+| SSH | [Citadel](https://github.com/orlandos-nl/Citadel) (Pure Swift / SwiftNIO) |
+| SSH Keys | Apple CryptoKit (Ed25519) |
+| Data | SwiftData |
+| Credentials | iOS Keychain |
+| Project | [XcodeGen](https://github.com/yonaskolb/XcodeGen) |
 
 ## Build
 
 ```bash
-# Requirements: Xcode 15+, XcodeGen
 brew install xcodegen
-
 cd ShinobiTerm
 xcodegen generate
 xcodebuild -scheme ShinobiTerm -destination 'platform=iOS Simulator,name=iPhone 16' build
@@ -167,28 +101,74 @@ xcodebuild -scheme ShinobiTerm -destination 'platform=iOS Simulator,name=iPhone 
 ```
 ShinobiTerm/ShinobiTerm/
 ├── Models/
-│   ├── ConnectionProfile.swift       # 接続プロファイル (SwiftData)
-│   └── AppSettings.swift             # アプリ設定
+│   ├── ConnectionProfile.swift       # Connection profiles (SwiftData)
+│   └── AppSettings.swift             # App settings
 ├── Views/
-│   ├── ConnectionListView.swift      # 接続一覧
-│   ├── ConnectionFormView.swift      # 接続追加・編集
-│   ├── TmuxAttachView.swift          # tmux セッション選択・アタッチ
-│   ├── TerminalContainerView.swift   # ターミナル + 拡張キーボード
-│   ├── ShinobiTerminalView.swift     # SwiftTerm ラッパー
-│   ├── ExtraKeysView.swift           # 拡張キーボード
-│   ├── SSHKeyManagementView.swift    # SSH 鍵管理
-│   └── SettingsView.swift            # 設定
+│   ├── ConnectionListView.swift      # Connection list
+│   ├── ConnectionFormView.swift      # Add / edit connection
+│   ├── TmuxAttachView.swift          # tmux session picker
+│   ├── TerminalContainerView.swift   # Terminal + extended keyboard
+│   ├── ShinobiTerminalView.swift     # SwiftTerm wrapper
+│   ├── ExtraKeysView.swift           # Extended keyboard
+│   ├── SSHKeyManagementView.swift    # SSH key management
+│   └── SettingsView.swift            # Settings
 └── Services/
-    ├── SSHSession.swift              # Citadel SSH + PTY 管理
-    ├── SSHConnectionManager.swift    # セッションライフサイクル
-    ├── SSHKeyService.swift           # Ed25519 鍵生成・Keychain 管理
-    ├── TmuxService.swift             # tmux ls (executeCommand)
+    ├── SSHSession.swift              # Citadel SSH + PTY
+    ├── SSHConnectionManager.swift    # Session lifecycle
+    ├── SSHKeyService.swift           # Ed25519 keygen + Keychain
+    ├── TmuxService.swift             # tmux ls / attach
     ├── TipJarService.swift           # StoreKit 2 Tip Jar
-    └── KeychainService.swift         # Keychain 読み書き
+    └── KeychainService.swift         # Keychain read/write
 ```
 
 ## License
 
 MIT License — Copyright (c) 2025 you tanaka / IE3
 
-See [LICENSE](LICENSE) for details.
+---
+
+<details>
+<summary>🇯🇵 日本語</summary>
+
+## Shinobi Term
+
+**iPhone から tmux にワンタップで attach する iOS SSH クライアント。**
+
+自宅 Mac の tmux で Claude Code を動かしておけば、外出先から Tailscale 経由でそのまま再開できます。
+
+### 使い方
+
+#### Mac 側
+
+```bash
+# システム設定 → 一般 → 共有 → リモートログイン → ON
+brew install tmux
+npm install -g @anthropic-ai/claude-code
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+tmux new -s dev
+claude
+```
+
+#### リモートアクセス
+
+Mac と iPhone の両方に [Tailscale](https://tailscale.com/) をインストール。Tailscale IP (`100.x.x.x`) を ShinobiTerm の接続先に設定してください。
+
+#### iPhone 側
+
+1. ShinobiTerm を開く → **+ add** をタップ
+2. ホスト・ポート (`22`)・認証情報を入力
+3. **tmux attach** → セッション選択 → 接続完了
+
+tmux セッションはデタッチしても維持されるため、接続が切れても作業は失われません。
+
+### 主な機能
+
+- **tmux ワンタップ attach** — セッション一覧から選んで即接続
+- **CJK 対応** — 日本語・中国語・韓国語が正しく表示される
+- **拡張キーボード** — Ctrl, Alt, Esc, Tab, 矢印キー
+- **SSH 鍵認証** — デバイス上で Ed25519 鍵ペアを生成、Keychain に安全に保管
+- **スクロールモード** — tmux copy-mode 連動で出力履歴を閲覧
+- **無料・OSS** — MIT License、広告なし、トラッキングなし
+
+</details>

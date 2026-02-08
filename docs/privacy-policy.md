@@ -54,7 +54,7 @@ We may update this privacy policy from time to time. Changes will be posted to t
 
 If you have questions about this privacy policy, please open an issue on our GitHub repository:
 
-https://github.com/IE3/shinobi-term/issues
+https://github.com/ie3jp/shinobi-term/issues
 
 ---
 

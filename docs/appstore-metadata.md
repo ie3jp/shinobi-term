@@ -43,7 +43,7 @@ Install Tailscale on both your Mac and iPhone for seamless SSH access from anywh
 
 All credentials are stored in iOS Keychain. No data is sent to our servers. No analytics or tracking.
 
-Source code: https://github.com/IE3/shinobi-term
+Source code: https://github.com/ie3jp/shinobi-term
 
 ## Description (JA)
 
@@ -71,7 +71,7 @@ Tailscale を Mac と iPhone にインストールすれば、外出先からで
 
 認証情報は iOS Keychain にのみ保存。外部サーバーへの送信なし。アナリティクス・トラッキングなし。
 
-ソースコード: https://github.com/IE3/shinobi-term
+ソースコード: https://github.com/ie3jp/shinobi-term
 
 ## Promotional Text (170 chars max, can be updated without new review)
 
@@ -79,15 +79,15 @@ iPhone から Claude Code を使う最短経路。tmux セッションにワン�
 
 ## Support URL
 
-https://github.com/IE3/shinobi-term/issues
+https://github.com/ie3jp/shinobi-term/issues
 
 ## Marketing URL
 
-https://github.com/IE3/shinobi-term
+https://github.com/ie3jp/shinobi-term
 
 ## Privacy Policy URL
 
-https://IE3.github.io/shinobi-term/privacy-policy
+https://ie3jp.github.io/shinobi-term/privacy-policy
 
 ## Review Notes
 

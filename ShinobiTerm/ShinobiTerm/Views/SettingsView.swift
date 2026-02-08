@@ -281,11 +281,11 @@ struct SettingsView: View {
                 settingDivider
 
                 Button {
-                    if let url = URL(string: "https://github.com/IE3/shinobi-term") {
+                    if let url = URL(string: "https://github.com/ie3jp/shinobi-term") {
                         UIApplication.shared.open(url)
                     }
                 } label: {
-                    settingRow(label: "github", value: "IE3/shinobi-term")
+                    settingRow(label: "github", value: "ie3jp/shinobi-term")
                 }
                 .buttonStyle(.plain)
 

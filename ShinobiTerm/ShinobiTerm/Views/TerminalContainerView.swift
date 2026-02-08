@@ -161,6 +161,7 @@ struct TerminalContainerView: View {
         let text = inputText
         guard !text.isEmpty else { return }
         inputText = ""
+        isInputFocused = false
         if isScrollMode, tmuxSession != nil {
             // Exit copy-mode if in it, send command, don't re-enter
             exitCopyMode()

@@ -163,7 +163,8 @@ struct TerminalContainerView: View {
         inputText = ""
         isInputFocused = false
         if isScrollMode, tmuxSession != nil {
-            // Exit copy-mode if in it, send command, don't re-enter
+            // Exit scroll mode and copy-mode, then send command
+            isScrollMode = false
             exitCopyMode()
             Task {
                 try? await Task.sleep(for: .milliseconds(300))

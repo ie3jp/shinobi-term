@@ -1,9 +1,11 @@
+import StoreKit
 import SwiftData
 import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var allSettings: [AppSettings]
+    @StateObject private var tipJar = TipJarService()
 
     private var settings: AppSettings {
         if let existing = allSettings.first {
@@ -25,6 +27,9 @@ struct SettingsView: View {
 
                 // SSH Keys
                 sshKeysSection
+
+                // Support
+                supportSection
 
                 // About
                 aboutSection
@@ -175,6 +180,83 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Support
+
+    private var supportSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            sectionLabel("// support")
+
+            VStack(spacing: 0) {
+                Button {
+                    Task { await tipJar.purchaseBeer() }
+                } label: {
+                    HStack {
+                        Text("buy_me_a_beer")
+                            .font(.system(size: 14, design: .monospaced))
+                            .foregroundStyle(Color("textPrimary"))
+                        Spacer()
+                        if tipJar.purchaseState == .purchasing {
+                            ProgressView()
+                                .tint(Color("textSecondary"))
+                        } else {
+                            Text(tipJar.beerProduct?.displayPrice ?? "$4.99")
+                                .font(.system(size: 14, design: .monospaced))
+                                .foregroundStyle(Color("greenPrimary"))
+                        }
+                        Image(systemName: "mug.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.yellow)
+                            .padding(.leading, 4)
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: 48)
+                }
+                .buttonStyle(.plain)
+                .disabled(tipJar.purchaseState == .purchasing)
+            }
+            .background(Color("bgSurface"))
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color("borderPrimary"), lineWidth: 1)
+            )
+
+            Text("shinobi_term is free & open source. tips help keep it alive.")
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundStyle(Color("textTertiary"))
+                .padding(.top, 2)
+        }
+        .alert("thanks!", isPresented: showThanksAlert) {
+            Button("OK") { tipJar.resetState() }
+        } message: {
+            Text("your support means a lot. cheers!")
+        }
+        .alert("error", isPresented: showErrorAlert) {
+            Button("OK") { tipJar.resetState() }
+        } message: {
+            if case .failed(let message) = tipJar.purchaseState {
+                Text(message)
+            }
+        }
+    }
+
+    private var showThanksAlert: Binding<Bool> {
+        Binding(
+            get: { tipJar.purchaseState == .success },
+            set: { if !$0 { tipJar.resetState() } }
+        )
+    }
+
+    private var showErrorAlert: Binding<Bool> {
+        Binding(
+            get: {
+                if case .failed = tipJar.purchaseState { return true }
+                return false
+            },
+            set: { if !$0 { tipJar.resetState() } }
+        )
+    }
+
     // MARK: - About
 
     private var aboutSection: some View {
@@ -186,11 +268,30 @@ struct SettingsView: View {
 
                 settingDivider
 
-                settingRow(label: "github", value: "open_source")
+                settingRow(label: "author", value: "you tanaka / IE3")
+
+                settingDivider
+
+                Button {
+                    if let url = URL(string: "https://github.com/IE3/shinobi-term") {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    settingRow(label: "github", value: "IE3/shinobi-term")
+                }
+                .buttonStyle(.plain)
 
                 settingDivider
 
                 settingRow(label: "license", value: "MIT")
+
+                settingDivider
+
+                NavigationLink {
+                    AcknowledgementsView()
+                } label: {
+                    settingRow(label: "acknowledgements", value: "")
+                }
             }
             .background(Color("bgSurface"))
             .cornerRadius(8)

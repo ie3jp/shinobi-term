@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0CFEF3D7CD984CB14BBFA08A /* TipJarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16015A2EB410033BCAD906EE /* TipJarService.swift */; };
 		11C4DC91DB7823D380CD190E /* ExtraKeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997FCA12B10C25C9CB97B075 /* ExtraKeysView.swift */; };
 		12207A3BD8CCEDC47FB48765 /* SSHSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4772414CC65722C3C25D0860 /* SSHSession.swift */; };
 		18FA6FEA2CF3F4147095BADD /* ConnectionListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE26CC5BEAEC0333CAE50B50 /* ConnectionListView.swift */; };
@@ -17,6 +18,7 @@
 		496FEA0C6D28DA457C7AE2A1 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = CF897CAD1A8FFC1096C6E000 /* Citadel */; };
 		63B428D8E299375C4363E76E /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130BFE3A60EBA7017FA548C6 /* KeychainService.swift */; };
 		6E646055AE492952F340D48A /* FontManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1ACFCA9EE47CBFADEA7C38 /* FontManager.swift */; };
+		8681104EE542150DE06E81F3 /* TipJar.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 461A847203A8B33B6B03CD48 /* TipJar.storekit */; };
 		92B9AE7BF6C93FEF441B83D2 /* TerminalContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E92AE15D41269F62CD134A9 /* TerminalContainerView.swift */; };
 		9451BFA8DDFD46C034D9E540 /* TmuxAttachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E8EEEA242FDA7536113AB6 /* TmuxAttachView.swift */; };
 		A513B7E3EE94DFB9DBCA4976 /* ShinobiTermApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97F07970261788109324294 /* ShinobiTermApp.swift */; };
@@ -33,8 +35,10 @@
 		0DBC2F0DE456D723FB2E0A7B /* InputBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputBarView.swift; sourceTree = "<group>"; };
 		130BFE3A60EBA7017FA548C6 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		14A73AD48083E16C271BE098 /* TmuxService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TmuxService.swift; sourceTree = "<group>"; };
+		16015A2EB410033BCAD906EE /* TipJarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipJarService.swift; sourceTree = "<group>"; };
 		26D05DA878BE9BBDBF5ADE11 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		34A65AD0AFED47311E6D167B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		461A847203A8B33B6B03CD48 /* TipJar.storekit */ = {isa = PBXFileReference; path = TipJar.storekit; sourceTree = "<group>"; };
 		4772414CC65722C3C25D0860 /* SSHSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHSession.swift; sourceTree = "<group>"; };
 		4E92AE15D41269F62CD134A9 /* TerminalContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalContainerView.swift; sourceTree = "<group>"; };
 		767D6F3E649FAFFF41ED5F9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -88,6 +92,7 @@
 				130BFE3A60EBA7017FA548C6 /* KeychainService.swift */,
 				B06D7B66F4ACC72C1C01680B /* SSHConnectionManager.swift */,
 				4772414CC65722C3C25D0860 /* SSHSession.swift */,
+				16015A2EB410033BCAD906EE /* TipJarService.swift */,
 				14A73AD48083E16C271BE098 /* TmuxService.swift */,
 			);
 			path = Services;
@@ -135,6 +140,7 @@
 		ECDFF0431674C6FCC342E7B0 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				461A847203A8B33B6B03CD48 /* TipJar.storekit */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -207,6 +213,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CF4BB5E4CA084CDC5F12D319 /* Assets.xcassets in Resources */,
+				8681104EE542150DE06E81F3 /* TipJar.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -232,6 +239,7 @@
 				A513B7E3EE94DFB9DBCA4976 /* ShinobiTermApp.swift in Sources */,
 				DBD3F4BC548BAFD7F481D7EC /* ShinobiTerminalView.swift in Sources */,
 				92B9AE7BF6C93FEF441B83D2 /* TerminalContainerView.swift in Sources */,
+				0CFEF3D7CD984CB14BBFA08A /* TipJarService.swift in Sources */,
 				9451BFA8DDFD46C034D9E540 /* TmuxAttachView.swift in Sources */,
 				2061799C55A45E3F00365D9C /* TmuxService.swift in Sources */,
 			);

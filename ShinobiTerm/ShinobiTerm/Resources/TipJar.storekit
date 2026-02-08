@@ -1,0 +1,90 @@
+{
+  "identifier" : "6B6A6B1A-F6A3-4A8E-B3E7-001122334455",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "tip_beer_001",
+      "localizations" : [
+        {
+          "description" : "Buy the developer a beer",
+          "displayName" : "Beer Tip",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "開発者にビール1杯おごる",
+          "displayName" : "ビール1杯",
+          "locale" : "ja"
+        }
+      ],
+      "productID" : "com.rettuce.shinobiterm.tip.beer",
+      "referenceName" : "Beer Tip",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "shinobiterm",
+    "_developerTeamID" : "VGVDSVNBZG",
+    "_failTransactionsEnabled" : false,
+    "_lastVerificationError" : "",
+    "_locale" : "ja",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

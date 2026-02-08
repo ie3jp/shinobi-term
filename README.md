@@ -64,6 +64,91 @@ xcodegen generate
 xcodebuild -scheme ShinobiTerm -destination 'platform=iOS Simulator,name=iPhone 16' build
 ```
 
+## Getting Started
+
+Shinobi Term を使うには、接続先の Mac 側でいくつかの準備が必要です。
+
+### 1. SSH サーバーを有効化
+
+macOS で「リモートログイン」を有効にします。
+
+```
+システム設定 → 一般 → 共有 → リモートログイン → ON
+```
+
+有効化後、ターミナルで接続を確認:
+
+```bash
+# Mac の IP アドレスを確認
+ipconfig getifaddr en0
+
+# SSH 接続テスト（同じ Mac 上で）
+ssh localhost
+```
+
+### 2. tmux をインストール
+
+```bash
+brew install tmux
+```
+
+推奨の `~/.tmux.conf` 設定:
+
+```bash
+# マウス操作を有効化（スクロール等）
+set -g mouse on
+
+# 256色サポート
+set -g default-terminal "xterm-256color"
+set -ga terminal-overrides ",xterm-256color:Tc"
+
+# UTF-8
+setw -g mode-keys vi
+```
+
+### 3. Claude Code をインストール
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+API キーを設定:
+
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."
+# ~/.zshrc にも追記しておく
+```
+
+### 4. tmux セッションを作成して Claude Code を起動
+
+```bash
+# 新しい tmux セッションを作成
+tmux new -s dev
+
+# セッション内で Claude Code を起動
+claude
+```
+
+### 5. iPhone から接続
+
+1. Shinobi Term を開く
+2. `+ add` で接続プロファイルを作成
+   - **Host**: Mac の IP アドレス（例: `192.168.1.10`）
+   - **Port**: `22`
+   - **Username / Password**: Mac のログインユーザー
+3. `tmux attach` ボタンで既存セッションにアタッチ
+
+### ネットワーク要件
+
+- iPhone と Mac が **同じ Wi-Fi** に接続されている必要があります
+- 外出先からアクセスするには [Tailscale](https://tailscale.com/) や WireGuard 等の VPN を利用してください
+
+### Tips
+
+- `LANG=en_US.UTF-8` は Shinobi Term が接続時に自動設定します
+- tmux セッションはデタッチ後も維持されるため、接続が切れても作業は失われません
+- スクロールモードで tmux の出力履歴を閲覧でき、コマンド送信時に自動解除されます
+
 ## Architecture
 
 ```
@@ -87,4 +172,6 @@ ShinobiTerm/ShinobiTerm/
 
 ## License
 
-MIT
+MIT License — Copyright (c) 2025 you tanaka / IE3
+
+See [LICENSE](LICENSE) for details.

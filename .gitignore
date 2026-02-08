@@ -43,3 +43,9 @@ plan/
 
 # Large video source files
 *.mov
+
+# Private / non-public files
+ignore/
+
+# Export options (contains Team ID)
+ExportOptions.plist

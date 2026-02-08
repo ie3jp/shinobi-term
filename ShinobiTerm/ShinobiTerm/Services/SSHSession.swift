@@ -1,4 +1,5 @@
 import Citadel
+import CryptoKit
 import Foundation
 import NIO
 
@@ -41,16 +42,49 @@ final class SSHSession: ObservableObject {
         username: String,
         password: String
     ) async {
+        await connect(
+            hostname: hostname,
+            port: port,
+            username: username,
+            authMethod: .password,
+            password: password,
+            privateKey: nil
+        )
+    }
+
+    func connect(
+        hostname: String,
+        port: Int,
+        username: String,
+        authMethod: AuthMethod,
+        password: String? = nil,
+        privateKey: Curve25519.Signing.PrivateKey? = nil
+    ) async {
         state = .connecting
 
         do {
+            let authentication: SSHAuthenticationMethod
+            switch authMethod {
+            case .password:
+                authentication = .passwordBased(
+                    username: username,
+                    password: password ?? ""
+                )
+            case .sshKey:
+                guard let key = privateKey else {
+                    state = .error("SSH key not found")
+                    return
+                }
+                authentication = .ed25519(
+                    username: username,
+                    privateKey: key
+                )
+            }
+
             let client = try await SSHClient.connect(
                 host: hostname,
                 port: port,
-                authenticationMethod: .passwordBased(
-                    username: username,
-                    password: password
-                ),
+                authenticationMethod: authentication,
                 hostKeyValidator: .acceptAnything(),
                 reconnect: .never
             )

@@ -15,7 +15,9 @@
 		2061799C55A45E3F00365D9C /* TmuxService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A73AD48083E16C271BE098 /* TmuxService.swift */; };
 		2A83F96C43778DEAD96242FD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A65AD0AFED47311E6D167B /* ContentView.swift */; };
 		2AEC83726A4F5873AF474E94 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26D05DA878BE9BBDBF5ADE11 /* AppSettings.swift */; };
+		4587E7C39EF51DA7D869DEE7 /* SSHKeyManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA8737EF39D1CBA6323DBA5 /* SSHKeyManagementView.swift */; };
 		496FEA0C6D28DA457C7AE2A1 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = CF897CAD1A8FFC1096C6E000 /* Citadel */; };
+		546F39CDFCEB1826F1EA852E /* SSHKeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C4D1E369C2E5188E4ADB48D /* SSHKeyService.swift */; };
 		63B428D8E299375C4363E76E /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130BFE3A60EBA7017FA548C6 /* KeychainService.swift */; };
 		6E646055AE492952F340D48A /* FontManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1ACFCA9EE47CBFADEA7C38 /* FontManager.swift */; };
 		8681104EE542150DE06E81F3 /* TipJar.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 461A847203A8B33B6B03CD48 /* TipJar.storekit */; };
@@ -38,9 +40,11 @@
 		16015A2EB410033BCAD906EE /* TipJarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipJarService.swift; sourceTree = "<group>"; };
 		26D05DA878BE9BBDBF5ADE11 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		34A65AD0AFED47311E6D167B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		3C4D1E369C2E5188E4ADB48D /* SSHKeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHKeyService.swift; sourceTree = "<group>"; };
 		461A847203A8B33B6B03CD48 /* TipJar.storekit */ = {isa = PBXFileReference; path = TipJar.storekit; sourceTree = "<group>"; };
 		4772414CC65722C3C25D0860 /* SSHSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHSession.swift; sourceTree = "<group>"; };
 		4E92AE15D41269F62CD134A9 /* TerminalContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalContainerView.swift; sourceTree = "<group>"; };
+		5AA8737EF39D1CBA6323DBA5 /* SSHKeyManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHKeyManagementView.swift; sourceTree = "<group>"; };
 		767D6F3E649FAFFF41ED5F9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		911E4506E5EF95B0D878F11B /* ShinobiTerm.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ShinobiTerm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		997FCA12B10C25C9CB97B075 /* ExtraKeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtraKeysView.swift; sourceTree = "<group>"; };
@@ -91,6 +95,7 @@
 				CE1ACFCA9EE47CBFADEA7C38 /* FontManager.swift */,
 				130BFE3A60EBA7017FA548C6 /* KeychainService.swift */,
 				B06D7B66F4ACC72C1C01680B /* SSHConnectionManager.swift */,
+				3C4D1E369C2E5188E4ADB48D /* SSHKeyService.swift */,
 				4772414CC65722C3C25D0860 /* SSHSession.swift */,
 				16015A2EB410033BCAD906EE /* TipJarService.swift */,
 				14A73AD48083E16C271BE098 /* TmuxService.swift */,
@@ -107,6 +112,7 @@
 				0DBC2F0DE456D723FB2E0A7B /* InputBarView.swift */,
 				D5FBFC9C30A271871F6C06C6 /* SettingsView.swift */,
 				BF43333A82B53B852FA8F1D8 /* ShinobiTerminalView.swift */,
+				5AA8737EF39D1CBA6323DBA5 /* SSHKeyManagementView.swift */,
 				4E92AE15D41269F62CD134A9 /* TerminalContainerView.swift */,
 				A6E8EEEA242FDA7536113AB6 /* TmuxAttachView.swift */,
 			);
@@ -234,6 +240,8 @@
 				AA24F2A6FA7A6846681E0FF8 /* InputBarView.swift in Sources */,
 				63B428D8E299375C4363E76E /* KeychainService.swift in Sources */,
 				F445099755E698984D90E636 /* SSHConnectionManager.swift in Sources */,
+				4587E7C39EF51DA7D869DEE7 /* SSHKeyManagementView.swift in Sources */,
+				546F39CDFCEB1826F1EA852E /* SSHKeyService.swift in Sources */,
 				12207A3BD8CCEDC47FB48765 /* SSHSession.swift in Sources */,
 				AD67D1388B126606BEBB95D6 /* SettingsView.swift in Sources */,
 				A513B7E3EE94DFB9DBCA4976 /* ShinobiTermApp.swift in Sources */,

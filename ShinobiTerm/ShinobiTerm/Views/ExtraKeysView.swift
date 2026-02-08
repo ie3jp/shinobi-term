@@ -62,7 +62,7 @@ struct ExtraKeysView: View {
 }
 
 enum ExtraKey: Equatable {
-    case esc, ctrl, alt, tab, tilde, pipe, slash
+    case esc, ctrl, alt, tab, enter, tilde, pipe, slash
     case arrowUp, arrowDown, arrowLeft, arrowRight
     case scroll, keyboard
 
@@ -72,6 +72,7 @@ enum ExtraKey: Equatable {
         case .ctrl: return "Ctrl"
         case .alt: return "Alt"
         case .tab: return "Tab"
+        case .enter: return "\u{23CE}"
         case .tilde: return "~"
         case .pipe: return "|"
         case .slash: return "/"
@@ -87,9 +88,10 @@ enum ExtraKey: Equatable {
     var fontSize: CGFloat {
         switch self {
         case .tilde, .pipe, .slash: return 15
+        case .enter: return 16
         case .arrowUp, .arrowDown, .arrowLeft, .arrowRight: return 14
         case .scroll: return 12
-        case .keyboard: return 16
+        case .keyboard: return 48
         default: return 13
         }
     }
@@ -98,6 +100,7 @@ enum ExtraKey: Equatable {
         switch self {
         case .esc: return Data([0x1B])
         case .tab: return Data([0x09])
+        case .enter: return Data([0x0D])
         case .tilde: return Data("~".utf8)
         case .pipe: return Data("|".utf8)
         case .slash: return Data("/".utf8)
@@ -110,7 +113,7 @@ enum ExtraKey: Equatable {
     }
 
     static let topRow: [ExtraKey] = [
-        .esc, .ctrl, .alt, .tab, .arrowUp, .tilde, .pipe, .slash,
+        .esc, .ctrl, .alt, .tab, .enter, .arrowUp, .tilde, .pipe, .slash,
     ]
 
     static let bottomRow: [ExtraKey] = [

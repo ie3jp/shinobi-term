@@ -1,3 +1,4 @@
+import CryptoKit
 import SwiftData
 import SwiftUI
 
@@ -212,15 +213,9 @@ struct TmuxAttachView: View {
     private func connectAndListSessions() async {
         let profileId = profile.profileId
         let session = connectionManager.createSession(for: profileId)
-        let password = (try? KeychainService.loadPassword(for: profileId)) ?? ""
 
         if session.state != .connected {
-            await session.connect(
-                hostname: profile.hostname,
-                port: profile.port,
-                username: profile.username,
-                password: password
-            )
+            await connectSession(session, profile: profile)
         }
 
         try? await Task.sleep(for: .seconds(2))
@@ -255,19 +250,38 @@ struct TmuxAttachView: View {
         } else {
             // Reconnect if session was disconnected
             Task {
-                let password = (try? KeychainService.loadPassword(for: profileId)) ?? ""
-                await session.connect(
-                    hostname: profile.hostname,
-                    port: profile.port,
-                    username: profile.username,
-                    password: password
-                )
+                await connectSession(session, profile: profile)
                 if session.state == .connected {
                     activeSession = session
                     showTerminal = true
                 }
                 isConnecting = false
             }
+        }
+    }
+
+    private func connectSession(_ session: SSHSession, profile: ConnectionProfile) async {
+        switch profile.authMethod {
+        case .password:
+            let password = (try? KeychainService.loadPassword(for: profile.profileId)) ?? ""
+            await session.connect(
+                hostname: profile.hostname,
+                port: profile.port,
+                username: profile.username,
+                password: password
+            )
+        case .sshKey:
+            let privateKey: Curve25519.Signing.PrivateKey? = {
+                guard let keyId = profile.sshKeyId else { return nil }
+                return try? SSHKeyService.loadPrivateKey(keyId: keyId)
+            }()
+            await session.connect(
+                hostname: profile.hostname,
+                port: profile.port,
+                username: profile.username,
+                authMethod: .sshKey,
+                privateKey: privateKey
+            )
         }
     }
 }

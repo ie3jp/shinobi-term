@@ -14,6 +14,7 @@ final class ConnectionProfile {
     var port: Int
     var username: String
     var authMethod: AuthMethod
+    var sshKeyId: String?
     var lastTmuxSession: String?
     var createdAt: Date
     var lastConnectedAt: Date?

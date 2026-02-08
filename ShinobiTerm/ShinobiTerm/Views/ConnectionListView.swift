@@ -1,3 +1,4 @@
+import CryptoKit
 import SwiftData
 import SwiftUI
 
@@ -6,6 +7,7 @@ struct ConnectionListView: View {
     @Query(sort: \ConnectionProfile.lastConnectedAt, order: .reverse) private var profiles: [ConnectionProfile]
     @StateObject private var connectionManager = SSHConnectionManager()
     @State private var showingAddForm = false
+    @State private var editingProfile: ConnectionProfile?
     @State private var selectedTmuxProfile: ConnectionProfile?
     @State private var activeTerminalProfile: ConnectionProfile?
     @State private var quickConnectText = ""
@@ -34,7 +36,7 @@ struct ConnectionListView: View {
             .background(Color("bgPage"))
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $showingAddForm) {
-                ConnectionFormView()
+                ConnectionFormView(editingProfile: editingProfile)
             }
             .navigationDestination(item: $selectedTmuxProfile) { profile in
                 TmuxAttachView(
@@ -125,6 +127,7 @@ struct ConnectionListView: View {
                 sectionLabel("// connections")
                 Spacer()
                 Button {
+                    editingProfile = nil
                     showingAddForm = true
                 } label: {
                     Text("+ add")
@@ -182,8 +185,11 @@ struct ConnectionListView: View {
         }
         .buttonStyle(.plain)
         .contextMenu {
-            Button("Edit") {
-                // TODO: Edit profile
+            Button {
+                editingProfile = profile
+                showingAddForm = true
+            } label: {
+                Label("Edit", systemImage: "pencil")
             }
             Button(role: .destructive) {
                 deleteProfile(profile)
@@ -260,13 +266,28 @@ struct ConnectionListView: View {
         let session = connectionManager.createSession(for: profileId)
 
         Task {
-            let password = (try? KeychainService.loadPassword(for: profileId)) ?? ""
-            await session.connect(
-                hostname: profile.hostname,
-                port: profile.port,
-                username: profile.username,
-                password: password
-            )
+            switch profile.authMethod {
+            case .password:
+                let password = (try? KeychainService.loadPassword(for: profileId)) ?? ""
+                await session.connect(
+                    hostname: profile.hostname,
+                    port: profile.port,
+                    username: profile.username,
+                    password: password
+                )
+            case .sshKey:
+                let privateKey: Curve25519.Signing.PrivateKey? = {
+                    guard let keyId = profile.sshKeyId else { return nil }
+                    return try? SSHKeyService.loadPrivateKey(keyId: keyId)
+                }()
+                await session.connect(
+                    hostname: profile.hostname,
+                    port: profile.port,
+                    username: profile.username,
+                    authMethod: .sshKey,
+                    privateKey: privateKey
+                )
+            }
             guard session.state == .connected else { return }
             profile.lastConnectedAt = Date()
             activeTerminalProfile = profile

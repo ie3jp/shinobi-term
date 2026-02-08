@@ -109,9 +109,6 @@ struct SettingsView: View {
                 .padding(.horizontal, 16)
                 .frame(height: 48)
 
-                settingDivider
-
-                settingRow(label: "color_scheme", value: settings.colorScheme.lowercased())
             }
             .background(Color("bgSurface"))
             .cornerRadius(8)
@@ -133,21 +130,26 @@ struct SettingsView: View {
 
                 settingDivider
 
-                HStack {
-                    Text("bell")
-                        .font(.system(size: 14, design: .monospaced))
-                        .foregroundStyle(Color("textPrimary"))
-                    Spacer()
-                    Text(settings.hapticFeedback ? "vibrate" : "off")
-                        .font(.system(size: 14, design: .monospaced))
-                        .foregroundStyle(Color("textSecondary"))
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color("textTertiary"))
-                        .padding(.leading, 8)
+                Button {
+                    settings.hapticFeedback.toggle()
+                } label: {
+                    HStack {
+                        Text("bell")
+                            .font(.system(size: 14, design: .monospaced))
+                            .foregroundStyle(Color("textPrimary"))
+                        Spacer()
+                        Text(settings.hapticFeedback ? "vibrate" : "off")
+                            .font(.system(size: 14, design: .monospaced))
+                            .foregroundStyle(settings.hapticFeedback ? Color("greenPrimary") : Color("textMuted"))
+                        Image(systemName: settings.hapticFeedback ? "iphone.radiowaves.left.and.right" : "iphone.slash")
+                            .font(.system(size: 12))
+                            .foregroundStyle(settings.hapticFeedback ? Color("greenPrimary") : Color("textTertiary"))
+                            .padding(.leading, 8)
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: 48)
                 }
-                .padding(.horizontal, 16)
-                .frame(height: 48)
+                .buttonStyle(.plain)
             }
             .background(Color("bgSurface"))
             .cornerRadius(8)
@@ -165,11 +167,11 @@ struct SettingsView: View {
             sectionLabel("// ssh_keys")
 
             VStack(spacing: 0) {
-                settingRow(label: "manage_keys", value: "")
-
-                settingDivider
-
-                settingRow(label: "generate_key_pair", value: "")
+                NavigationLink {
+                    SSHKeyManagementView()
+                } label: {
+                    settingRow(label: "manage_keys", value: "\(SSHKeyService.listKeys().count) keys")
+                }
             }
             .background(Color("bgSurface"))
             .cornerRadius(8)
@@ -203,9 +205,8 @@ struct SettingsView: View {
                                 .font(.system(size: 14, design: .monospaced))
                                 .foregroundStyle(Color("greenPrimary"))
                         }
-                        Image(systemName: "mug.fill")
-                            .font(.system(size: 14))
-                            .foregroundStyle(Color.yellow)
+                        Text("🍻")
+                            .font(.system(size: 18))
                             .padding(.leading, 4)
                     }
                     .padding(.horizontal, 16)
@@ -268,7 +269,14 @@ struct SettingsView: View {
 
                 settingDivider
 
-                settingRow(label: "author", value: "you tanaka / IE3")
+                Button {
+                    if let url = URL(string: "https://rettuce.com/profile") {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    settingRow(label: "author", value: "you tanaka / IE3")
+                }
+                .buttonStyle(.plain)
 
                 settingDivider
 

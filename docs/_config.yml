@@ -1,0 +1,8 @@
+title: Shinobi Term
+description: SSH Terminal for tmux & Claude Code
+theme: minima
+baseurl: /shinobi-term
+url: https://IE3.github.io
+exclude:
+  - shinobi-term-spec.md
+  - appstore-metadata.md

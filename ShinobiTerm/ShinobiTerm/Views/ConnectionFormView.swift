@@ -1,3 +1,4 @@
+import CryptoKit
 import SwiftData
 import SwiftUI
 
@@ -14,6 +15,8 @@ struct ConnectionFormView: View {
     @State private var authMethod: AuthMethod = .password
     @State private var password = ""
     @State private var sshKey = ""
+    @State private var selectedKeyId: String?
+    @State private var availableKeys: [SSHKeyInfo] = []
     @State private var isTesting = false
     @State private var testResult: TestResult?
 
@@ -110,7 +113,7 @@ struct ConnectionFormView: View {
             .padding(16)
         }
         .background(Color("bgPage"))
-        .navigationTitle("add_connection")
+        .navigationTitle(editingProfile != nil ? "edit_connection" : "add_connection")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
@@ -122,15 +125,16 @@ struct ConnectionFormView: View {
             }
         }
         .onAppear {
+            availableKeys = SSHKeyService.listKeys()
             if let profile = editingProfile {
                 name = profile.name
                 hostname = profile.hostname
                 port = String(profile.port)
                 username = profile.username
                 authMethod = profile.authMethod
+                selectedKeyId = profile.sshKeyId
                 let profileId = profile.profileId
                 password = (try? KeychainService.loadPassword(for: profileId)) ?? ""
-                sshKey = (try? KeychainService.loadSSHKey(for: profileId)) ?? ""
             }
         }
         .preferredColorScheme(.dark)
@@ -186,26 +190,60 @@ struct ConnectionFormView: View {
                     Text("ssh_key")
                         .font(.system(size: 12, design: .monospaced))
                         .foregroundStyle(Color("textMuted"))
-                    TextEditor(text: $sshKey)
-                        .font(.system(size: 13, design: .monospaced))
-                        .foregroundStyle(Color("textPrimary"))
-                        .scrollContentBackground(.hidden)
-                        .frame(height: 120)
-                        .padding(10)
+
+                    if availableKeys.isEmpty {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Color.yellow)
+                            Text("no keys found. generate one in Settings > SSH Keys.")
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(Color("textMuted"))
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color("bgInput"))
+                        .cornerRadius(8)
+                    } else {
+                        VStack(spacing: 0) {
+                            ForEach(availableKeys) { key in
+                                Button {
+                                    selectedKeyId = key.id
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "key.fill")
+                                            .font(.system(size: 12))
+                                            .foregroundStyle(Color("greenPrimary"))
+                                        Text(key.name)
+                                            .font(.system(size: 14, design: .monospaced))
+                                            .foregroundStyle(Color("textPrimary"))
+                                        Spacer()
+                                        if selectedKeyId == key.id {
+                                            Image(systemName: "checkmark")
+                                                .font(.system(size: 12))
+                                                .foregroundStyle(Color("greenPrimary"))
+                                        }
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .frame(height: 44)
+                                }
+                                .buttonStyle(.plain)
+
+                                if key.id != availableKeys.last?.id {
+                                    Rectangle()
+                                        .fill(Color("borderPrimary"))
+                                        .frame(height: 1)
+                                        .padding(.leading, 12)
+                                }
+                            }
+                        }
                         .background(Color("bgInput"))
                         .cornerRadius(8)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
                                 .stroke(Color("borderPrimary"), lineWidth: 1)
                         )
-                        .overlay {
-                            if sshKey.isEmpty {
-                                Text("paste your SSH private key here")
-                                    .font(.system(size: 13, design: .monospaced))
-                                    .foregroundStyle(Color("textMuted"))
-                                    .allowsHitTesting(false)
-                            }
-                        }
+                    }
                 }
             }
         }
@@ -278,6 +316,7 @@ struct ConnectionFormView: View {
             profile.port = portNumber
             profile.username = username
             profile.authMethod = authMethod
+            profile.sshKeyId = authMethod == .sshKey ? selectedKeyId : nil
             saveCredentials(for: profile.profileId)
         } else {
             let profile = ConnectionProfile(
@@ -287,6 +326,7 @@ struct ConnectionFormView: View {
                 username: username,
                 authMethod: authMethod
             )
+            profile.sshKeyId = authMethod == .sshKey ? selectedKeyId : nil
             modelContext.insert(profile)
             try? modelContext.save()
             saveCredentials(for: profile.profileId)
@@ -296,11 +336,8 @@ struct ConnectionFormView: View {
     }
 
     private func saveCredentials(for profileId: String) {
-        switch authMethod {
-        case .password:
+        if authMethod == .password {
             try? KeychainService.savePassword(password, for: profileId)
-        case .sshKey:
-            try? KeychainService.saveSSHKey(sshKey, for: profileId)
         }
     }
 
@@ -310,12 +347,27 @@ struct ConnectionFormView: View {
 
         Task {
             let session = SSHSession()
-            await session.connect(
-                hostname: hostname,
-                port: Int(port) ?? 22,
-                username: username,
-                password: password
-            )
+            switch authMethod {
+            case .password:
+                await session.connect(
+                    hostname: hostname,
+                    port: Int(port) ?? 22,
+                    username: username,
+                    password: password
+                )
+            case .sshKey:
+                let privateKey: Curve25519.Signing.PrivateKey? = {
+                    guard let keyId = selectedKeyId else { return nil }
+                    return try? SSHKeyService.loadPrivateKey(keyId: keyId)
+                }()
+                await session.connect(
+                    hostname: hostname,
+                    port: Int(port) ?? 22,
+                    username: username,
+                    authMethod: .sshKey,
+                    privateKey: privateKey
+                )
+            }
 
             await MainActor.run {
                 isTesting = false

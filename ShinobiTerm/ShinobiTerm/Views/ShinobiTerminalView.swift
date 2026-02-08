@@ -7,6 +7,7 @@ struct ShinobiTerminalView: UIViewRepresentable {
     var fontName: String = "Menlo"
     var fontSize: CGFloat = 14
     var scrollbackLines: Int = 10000
+    var hapticFeedback: Bool = true
     var autoFocus: Bool = true
     var onSizeChanged: ((Int, Int) -> Void)?
 
@@ -20,6 +21,9 @@ struct ShinobiTerminalView: UIViewRepresentable {
         terminalView.font = font
 
         terminalView.getTerminal().changeHistorySize(scrollbackLines)
+
+        // SwiftTerm 組み込みの inputAccessoryView を無効化（アプリ独自の ExtraKeysView を使用）
+        terminalView.inputAccessoryView = nil
 
         terminalView.terminalDelegate = context.coordinator
         if autoFocus {
@@ -35,20 +39,26 @@ struct ShinobiTerminalView: UIViewRepresentable {
     func updateUIView(_ terminalView: TerminalView, context: Context) {
         let font = FontManager.terminalFont(name: fontName, size: fontSize)
         terminalView.font = font
+        context.coordinator.hapticFeedback = hapticFeedback
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(session: session, onSizeChanged: onSizeChanged)
+        Coordinator(session: session, hapticFeedback: hapticFeedback, onSizeChanged: onSizeChanged)
     }
 
     class Coordinator: NSObject, TerminalViewDelegate {
         let session: SSHSession
         var terminalView: TerminalView?
+        var hapticFeedback: Bool
         var onSizeChanged: ((Int, Int) -> Void)?
+        private let hapticGenerator = UIImpactFeedbackGenerator(style: .medium)
 
-        init(session: SSHSession, onSizeChanged: ((Int, Int) -> Void)?) {
+        init(session: SSHSession, hapticFeedback: Bool, onSizeChanged: ((Int, Int) -> Void)?) {
             self.session = session
+            self.hapticFeedback = hapticFeedback
             self.onSizeChanged = onSizeChanged
+            super.init()
+            hapticGenerator.prepare()
         }
 
         @MainActor
@@ -57,6 +67,11 @@ struct ShinobiTerminalView: UIViewRepresentable {
                 guard let terminalView = self?.terminalView else { return }
                 let bytes = ArraySlice([UInt8](data))
                 terminalView.feed(byteArray: bytes)
+                // 最下部にスクロールして最新の出力を表示
+                let bottomY = max(0, terminalView.contentSize.height - terminalView.bounds.height)
+                if terminalView.contentOffset.y < bottomY {
+                    terminalView.contentOffset = CGPoint(x: 0, y: bottomY)
+                }
             }
         }
 
@@ -88,6 +103,12 @@ struct ShinobiTerminalView: UIViewRepresentable {
 
         func clipboardCopy(source: TerminalView, content: Data) {
             UIPasteboard.general.setData(content, forPasteboardType: "public.utf8-plain-text")
+        }
+
+        func bell(source: TerminalView) {
+            guard hapticFeedback else { return }
+            hapticGenerator.impactOccurred()
+            hapticGenerator.prepare()
         }
 
         func iTermContent(source: TerminalView, content: Data) {}

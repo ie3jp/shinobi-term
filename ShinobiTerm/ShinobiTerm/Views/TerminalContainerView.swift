@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 import UIKit
 
@@ -8,6 +9,12 @@ struct TerminalContainerView: View {
     var initialCommand: String?
     var fontName: String = "Menlo"
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Query private var allSettings: [AppSettings]
+
+    private var settings: AppSettings {
+        allSettings.first ?? AppSettings()
+    }
     @State private var isCtrlActive = false
     @State private var isAltActive = false
     @State private var isScrollMode = true
@@ -32,6 +39,8 @@ struct TerminalContainerView: View {
                         session: session,
                         fontName: fontName,
                         fontSize: optimalFontSize,
+                        scrollbackLines: settings.scrollbackLines,
+                        hapticFeedback: settings.hapticFeedback,
                         autoFocus: false
                     )
 

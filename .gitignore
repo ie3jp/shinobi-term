@@ -46,6 +46,7 @@ plan/
 
 # Private / non-public files
 ignore/
+scripts/
 
 # Local build settings (contains Team ID)
 local.xcconfig

@@ -34,6 +34,7 @@ Package.resolved
 
 # Claude Code
 .claude/settings.local.json
+CLAUDE.md
 
 # Pencil
 # .pen files are tracked (design assets)

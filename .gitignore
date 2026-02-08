@@ -40,3 +40,6 @@ Package.resolved
 
 # Plan files (temporary)
 plan/
+
+# Large video source files
+*.mov

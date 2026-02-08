@@ -25,7 +25,9 @@ iPhone (ShinobiTerm) ── Tailscale / SSH ──→ Mac (tmux → Claude Code)
 
 Leave Claude Code running in tmux on your Mac. Pick up where you left off from anywhere — one tap.
 
-<!-- TODO: screenshots -->
+<p align="center">
+  <img src="design/capture_2x.gif" width="320" alt="Shinobi Term Demo">
+</p>
 
 ## Features
 
@@ -123,7 +125,7 @@ ShinobiTerm/ShinobiTerm/
 
 ## License
 
-MIT License — Copyright (c) 2025 you tanaka / IE3
+MIT License — Copyright (c) 2025 [you tanaka / IE3](https://github.com/rettuce)
 
 ---
 

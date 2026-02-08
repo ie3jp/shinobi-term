@@ -47,5 +47,6 @@ plan/
 # Private / non-public files
 ignore/
 
-# Export options (contains Team ID)
+# Local build settings (contains Team ID)
+local.xcconfig
 ExportOptions.plist

@@ -25,16 +25,18 @@ targets:
     dependencies:
       - package: SwiftTerm
       - package: Citadel
+    configFiles:
+      Debug: local.xcconfig
+      Release: local.xcconfig
     settings:
       base:
         SWIFT_VERSION: "5.9"
         INFOPLIST_FILE: ShinobiTerm/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.rettuce.shinobiterm
-        MARKETING_VERSION: "1.0.0"
-        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: "1.0.1"
+        CURRENT_PROJECT_VERSION: 2
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: false
-        DEVELOPMENT_TEAM: ""  # Set your Apple Developer Team ID here
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_IDENTITY: "Apple Development"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

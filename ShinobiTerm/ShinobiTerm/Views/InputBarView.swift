@@ -5,24 +5,26 @@ struct InputBarView: View {
     var isFocused: FocusState<Bool>.Binding
     var onSend: () -> Void
 
+    private var hasContent: Bool {
+        !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var body: some View {
-        HStack(spacing: 8) {
-            TextField("command or message...", text: $text)
+        HStack(alignment: .bottom, spacing: 8) {
+            TextField("command or message...", text: $text, axis: .vertical)
                 .font(.system(size: 14, design: .monospaced))
                 .foregroundStyle(Color("textPrimary"))
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .focused(isFocused)
-                .onSubmit { onSend() }
+                .lineLimit(1...3)
 
             Button(action: onSend) {
                 Image(systemName: "arrow.up.circle.fill")
                     .font(.system(size: 28))
-                    .foregroundStyle(
-                        text.isEmpty ? Color("textTertiary") : Color("greenPrimary")
-                    )
+                    .foregroundStyle(hasContent ? Color("greenPrimary") : Color("textTertiary"))
             }
-            .disabled(text.isEmpty)
+            .disabled(!hasContent)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)

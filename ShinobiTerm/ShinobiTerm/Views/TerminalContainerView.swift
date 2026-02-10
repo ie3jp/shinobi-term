@@ -1,6 +1,16 @@
 import SwiftData
+import SwiftTerm
 import SwiftUI
-import UIKit
+
+// MARK: - ANSI Sequences
+
+private enum ANSI {
+    static let arrowUp = Data([0x1B, 0x5B, 0x41])
+    static let arrowDown = Data([0x1B, 0x5B, 0x42])
+    static let tmuxPrefix = Data([0x02])
+}
+
+// MARK: - Terminal Container
 
 struct TerminalContainerView: View {
     let session: SSHSession
@@ -8,17 +18,28 @@ struct TerminalContainerView: View {
     var tmuxSession: String?
     var initialCommand: String?
     var fontName: String = "Menlo"
+
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
     @Query private var allSettings: [AppSettings]
 
     private var settings: AppSettings {
         allSettings.first ?? AppSettings()
     }
+
+    // Modifier keys
     @State private var isCtrlActive = false
     @State private var isAltActive = false
-    @State private var isScrollMode = true
+
+    // Read mode
+    @State private var isReadMode = false
     @State private var isInCopyMode = false
+    @State private var scrollLinesFromBottom = 0
+
+    // Zoom
+    @State private var terminalScale: CGFloat = 1.0
+    @State private var terminalOffset: CGSize = .zero
+
+    // Terminal
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
 
@@ -30,10 +51,8 @@ struct TerminalContainerView: View {
             )
 
             VStack(spacing: 0) {
-                // Top bar
                 terminalBar
 
-                // Terminal + Scroll overlay
                 ZStack {
                     ShinobiTerminalView(
                         session: session,
@@ -43,23 +62,36 @@ struct TerminalContainerView: View {
                         hapticFeedback: settings.hapticFeedback,
                         autoFocus: false
                     )
+                    .scaleEffect(terminalScale)
+                    .offset(terminalOffset)
 
-                    if isScrollMode {
-                        ScrollOverlayView { lines in
-                            handleScrollGesture(lines: lines)
+                    if isReadMode {
+                        ScrollOverlayView(
+                            isZoomed: terminalScale > 1.0,
+                            onScroll: { handleScrollGesture(lines: $0) },
+                            onScrollEnded: { handleScrollEnded() },
+                            onPinch: { handlePinchGesture(scale: $0) },
+                            onZoomPan: { handleZoomPan(translation: $0) },
+                            onDoubleTap: { resetZoom() }
+                        )
+
+                        VStack {
+                            Spacer()
+                            readModeControls
                         }
+                        .padding(.bottom, 8)
                     }
-                }
 
-                // Extra Keys
+                }
+                .clipped()
+
                 ExtraKeysView(
                     onKey: { handleExtraKey($0) },
                     isCtrlActive: isCtrlActive,
                     isAltActive: isAltActive,
-                    isScrollActive: isScrollMode
+                    isReadActive: isReadMode
                 )
 
-                // Input Bar
                 InputBarView(
                     text: $inputText,
                     isFocused: $isInputFocused,
@@ -77,14 +109,11 @@ struct TerminalContainerView: View {
                 try? await Task.sleep(for: .milliseconds(100))
                 session.send(cmd)
             }
-            // Auto-enter tmux copy-mode for scroll
-            if isScrollMode, tmuxSession != nil {
-                try? await Task.sleep(for: .milliseconds(500))
-                enterCopyMode()
-            }
             isInputFocused = true
         }
     }
+
+    // MARK: - Top Bar
 
     private var terminalBar: some View {
         HStack {
@@ -100,8 +129,8 @@ struct TerminalContainerView: View {
                         .font(.system(size: 11, design: .monospaced))
                         .foregroundStyle(Color("textMuted"))
                 }
-                if isScrollMode {
-                    Text("SCROLL")
+                if isReadMode {
+                    Text("READ")
                         .font(.system(size: 10, weight: .bold, design: .monospaced))
                         .foregroundStyle(.black)
                         .padding(.horizontal, 6)
@@ -133,11 +162,54 @@ struct TerminalContainerView: View {
         }
     }
 
-    // MARK: - Copy Mode
+    // MARK: - Read Mode Controls
+
+    private var readModeControls: some View {
+        HStack(spacing: 16) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    terminalScale = max(1.0, terminalScale - 0.5)
+                    if terminalScale <= 1.0 { terminalOffset = .zero }
+                }
+            } label: {
+                Image(systemName: "minus.magnifyingglass")
+                    .font(.system(size: 16))
+                    .foregroundStyle(
+                        terminalScale <= 1.0 ? Color("textTertiary") : Color("textPrimary")
+                    )
+            }
+            .disabled(terminalScale <= 1.0)
+
+            if terminalScale > 1.0 {
+                Text("\(Int(terminalScale * 100))%")
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color("textMuted"))
+            }
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    terminalScale = min(4.0, terminalScale + 0.5)
+                }
+            } label: {
+                Image(systemName: "plus.magnifyingglass")
+                    .font(.system(size: 16))
+                    .foregroundStyle(
+                        terminalScale >= 4.0 ? Color("textTertiary") : Color("textPrimary")
+                    )
+            }
+            .disabled(terminalScale >= 4.0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial)
+        .cornerRadius(12)
+    }
+
+    // MARK: - tmux Copy Mode
 
     private func enterCopyMode() {
         guard tmuxSession != nil, !isInCopyMode else { return }
-        session.send(Data([0x02]))
+        session.send(ANSI.tmuxPrefix)
         session.send(Data("[".utf8))
         isInCopyMode = true
     }
@@ -148,33 +220,66 @@ struct TerminalContainerView: View {
         isInCopyMode = false
     }
 
+    private func returnToLiveView() {
+        exitCopyMode()
+        scrollLinesFromBottom = 0
+    }
+
+    // MARK: - Zoom
+
+    private func resetZoom() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            terminalScale = 1.0
+            terminalOffset = .zero
+        }
+    }
+
+    private func handlePinchGesture(scale: CGFloat) {
+        let newScale = terminalScale * scale
+        terminalScale = max(1.0, min(4.0, newScale))
+        if terminalScale <= 1.0 {
+            terminalOffset = .zero
+        }
+    }
+
+    private func handleZoomPan(translation: CGPoint) {
+        guard terminalScale > 1.0 else { return }
+        terminalOffset = CGSize(
+            width: terminalOffset.width + translation.x,
+            height: terminalOffset.height + translation.y
+        )
+    }
+
     // MARK: - Scroll
 
     private func handleScrollGesture(lines: Int) {
         guard tmuxSession != nil else { return }
-        // Enter copy-mode on first scroll if not already in it
         if !isInCopyMode {
             enterCopyMode()
         }
-        let arrowUp = Data([0x1B, 0x5B, 0x41])
-        let arrowDown = Data([0x1B, 0x5B, 0x42])
-        let key = lines > 0 ? arrowUp : arrowDown
+        scrollLinesFromBottom = max(0, scrollLinesFromBottom + lines)
+        let key = lines > 0 ? ANSI.arrowUp : ANSI.arrowDown
         for _ in 0..<abs(lines) {
             session.send(key)
+        }
+    }
+
+    private func handleScrollEnded() {
+        if scrollLinesFromBottom <= 0, isInCopyMode {
+            exitCopyMode()
         }
     }
 
     // MARK: - Input
 
     private func sendInputText() {
-        let text = inputText
+        let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         inputText = ""
         isInputFocused = false
-        if isScrollMode, tmuxSession != nil {
-            // Exit scroll mode and copy-mode, then send command
-            isScrollMode = false
-            exitCopyMode()
+
+        if isInCopyMode, tmuxSession != nil {
+            returnToLiveView()
             Task {
                 try? await Task.sleep(for: .milliseconds(300))
                 session.send(text)
@@ -182,19 +287,27 @@ struct TerminalContainerView: View {
                 session.send(Data([0x0D]))
             }
         } else {
-            session.send(text)
-            session.send(Data([0x0D]))
+            Task {
+                session.send(text)
+                try? await Task.sleep(for: .milliseconds(50))
+                session.send(Data([0x0D]))
+            }
         }
     }
 
-    private func toggleScrollMode() {
-        isScrollMode.toggle()
-        if isScrollMode {
-            enterCopyMode()
+    // MARK: - Mode Toggle
+
+    private func toggleReadMode() {
+        isReadMode.toggle()
+        if isReadMode {
+            scrollLinesFromBottom = 0
         } else {
-            exitCopyMode()
+            returnToLiveView()
+            resetZoom()
         }
     }
+
+    // MARK: - Extra Keys
 
     private func handleExtraKey(_ key: ExtraKey) {
         switch key {
@@ -202,8 +315,8 @@ struct TerminalContainerView: View {
             isCtrlActive.toggle()
         case .alt:
             isAltActive.toggle()
-        case .scroll:
-            toggleScrollMode()
+        case .read:
+            toggleReadMode()
         case .keyboard:
             isInputFocused.toggle()
         default:
@@ -211,65 +324,12 @@ struct TerminalContainerView: View {
                 isCtrlActive = false
                 if let char = key.label.lowercased().first,
                    let ascii = char.asciiValue {
-                    let ctrlChar = ascii & 0x1F
-                    session.send(Data([ctrlChar]))
+                    session.send(Data([ascii & 0x1F]))
                 } else {
                     session.send(key.sequence)
                 }
             } else {
                 session.send(key.sequence)
-            }
-        }
-    }
-}
-
-// MARK: - Scroll Overlay
-
-/// スクロールモード中にパンジェスチャーを検出するオーバーレイ
-struct ScrollOverlayView: UIViewRepresentable {
-    let onScroll: (Int) -> Void
-
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-        view.backgroundColor = UIColor.black.withAlphaComponent(0.01)
-        let pan = UIPanGestureRecognizer(
-            target: context.coordinator,
-            action: #selector(Coordinator.handlePan(_:))
-        )
-        view.addGestureRecognizer(pan)
-        return view
-    }
-
-    func updateUIView(_ uiView: UIView, context: Context) {}
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onScroll: onScroll)
-    }
-
-    class Coordinator: NSObject {
-        let onScroll: (Int) -> Void
-        private var accumulatedDelta: CGFloat = 0
-        private let lineHeight: CGFloat = 16
-
-        init(onScroll: @escaping (Int) -> Void) {
-            self.onScroll = onScroll
-        }
-
-        @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
-            switch gesture.state {
-            case .changed:
-                let translation = gesture.translation(in: gesture.view)
-                accumulatedDelta += translation.y
-                let lines = Int(accumulatedDelta / lineHeight)
-                if lines != 0 {
-                    onScroll(-lines)
-                    accumulatedDelta -= CGFloat(lines) * lineHeight
-                }
-                gesture.setTranslation(.zero, in: gesture.view)
-            case .ended, .cancelled:
-                accumulatedDelta = 0
-            default:
-                break
             }
         }
     }

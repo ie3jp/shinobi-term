@@ -4,7 +4,7 @@ struct ExtraKeysView: View {
     var onKey: (ExtraKey) -> Void
     var isCtrlActive: Bool = false
     var isAltActive: Bool = false
-    var isScrollActive: Bool = false
+    var isReadActive: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,9 +23,9 @@ struct ExtraKeysView: View {
                     .frame(height: 1)
             }
 
-            // Row 2: Scroll, ←, ↓, →, ⌨
+            // Row 2: Read, ←, ↓, →, ⌨
             HStack(spacing: 4) {
-                extraKeyButton(.scroll)
+                extraKeyButton(.read)
                     .frame(maxWidth: .infinity)
                 Spacer()
                 ForEach(ExtraKey.bottomRow, id: \.label) { key in
@@ -44,7 +44,7 @@ struct ExtraKeysView: View {
     private func extraKeyButton(_ key: ExtraKey) -> some View {
         let isActive = (key == .ctrl && isCtrlActive)
             || (key == .alt && isAltActive)
-            || (key == .scroll && isScrollActive)
+            || (key == .read && isReadActive)
 
         return Button {
             onKey(key)
@@ -64,7 +64,7 @@ struct ExtraKeysView: View {
 enum ExtraKey: Equatable {
     case esc, ctrl, alt, tab, enter, tilde, pipe, slash
     case arrowUp, arrowDown, arrowLeft, arrowRight
-    case scroll, keyboard
+    case read, keyboard
 
     var label: String {
         switch self {
@@ -80,7 +80,7 @@ enum ExtraKey: Equatable {
         case .arrowDown: return "\u{2193}"
         case .arrowLeft: return "\u{2190}"
         case .arrowRight: return "\u{2192}"
-        case .scroll: return "Scroll"
+        case .read: return "Read"
         case .keyboard: return "\u{2328}"
         }
     }
@@ -90,7 +90,7 @@ enum ExtraKey: Equatable {
         case .tilde, .pipe, .slash: return 15
         case .enter: return 16
         case .arrowUp, .arrowDown, .arrowLeft, .arrowRight: return 14
-        case .scroll: return 12
+        case .read: return 12
         case .keyboard: return 48
         default: return 13
         }
@@ -108,7 +108,7 @@ enum ExtraKey: Equatable {
         case .arrowDown: return Data([0x1B, 0x5B, 0x42])
         case .arrowRight: return Data([0x1B, 0x5B, 0x43])
         case .arrowLeft: return Data([0x1B, 0x5B, 0x44])
-        case .ctrl, .alt, .scroll, .keyboard: return Data()
+        case .ctrl, .alt, .read, .keyboard: return Data()
         }
     }
 

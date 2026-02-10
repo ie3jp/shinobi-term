@@ -31,6 +31,7 @@
 		DBD3F4BC548BAFD7F481D7EC /* ShinobiTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF43333A82B53B852FA8F1D8 /* ShinobiTerminalView.swift */; };
 		DECF66C31C111249A8C53428 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 88862A6E66F0F0C815DA5821 /* SwiftTerm */; };
 		F445099755E698984D90E636 /* SSHConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06D7B66F4ACC72C1C01680B /* SSHConnectionManager.swift */; };
+		FBA5655772B24EDDC273CA23 /* ScrollOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD42B063011793D6BDE0D9D /* ScrollOverlayView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,8 +55,10 @@
 		CE11118F620376902A1388DE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE1ACFCA9EE47CBFADEA7C38 /* FontManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontManager.swift; sourceTree = "<group>"; };
 		D5FBFC9C30A271871F6C06C6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		DD01480F5824FD40C9558B59 /* local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = local.xcconfig; sourceTree = "<group>"; };
 		E97F07970261788109324294 /* ShinobiTermApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShinobiTermApp.swift; sourceTree = "<group>"; };
 		EC3321521A940512BB919276 /* ConnectionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionFormView.swift; sourceTree = "<group>"; };
+		EDD42B063011793D6BDE0D9D /* ScrollOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollOverlayView.swift; sourceTree = "<group>"; };
 		EE26CC5BEAEC0333CAE50B50 /* ConnectionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionListView.swift; sourceTree = "<group>"; };
 		FC09A624D84D7692F5B348F4 /* ConnectionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionProfile.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -85,6 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				D18D94AE448209E9E7ABCE82 /* ShinobiTerm */,
+				9B5BDB8885FAD084F9511CFF /* ShinobiTerm */,
 				2F0CA063FD1E4ED4EAB56A64 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -110,6 +114,7 @@
 				EE26CC5BEAEC0333CAE50B50 /* ConnectionListView.swift */,
 				997FCA12B10C25C9CB97B075 /* ExtraKeysView.swift */,
 				0DBC2F0DE456D723FB2E0A7B /* InputBarView.swift */,
+				EDD42B063011793D6BDE0D9D /* ScrollOverlayView.swift */,
 				D5FBFC9C30A271871F6C06C6 /* SettingsView.swift */,
 				BF43333A82B53B852FA8F1D8 /* ShinobiTerminalView.swift */,
 				5AA8737EF39D1CBA6323DBA5 /* SSHKeyManagementView.swift */,
@@ -117,6 +122,15 @@
 				A6E8EEEA242FDA7536113AB6 /* TmuxAttachView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		9B5BDB8885FAD084F9511CFF /* ShinobiTerm */ = {
+			isa = PBXGroup;
+			children = (
+				DD01480F5824FD40C9558B59 /* local.xcconfig */,
+			);
+			name = ShinobiTerm;
+			path = .;
 			sourceTree = "<group>";
 		};
 		BAB900F87DCC9863D9643EB3 /* Models */ = {
@@ -185,7 +199,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					3BC5274FA8942DAC8BF55B03 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = VGVDSVNBZG;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -243,6 +257,7 @@
 				4587E7C39EF51DA7D869DEE7 /* SSHKeyManagementView.swift in Sources */,
 				546F39CDFCEB1826F1EA852E /* SSHKeyService.swift in Sources */,
 				12207A3BD8CCEDC47FB48765 /* SSHSession.swift in Sources */,
+				FBA5655772B24EDDC273CA23 /* ScrollOverlayView.swift in Sources */,
 				AD67D1388B126606BEBB95D6 /* SettingsView.swift in Sources */,
 				A513B7E3EE94DFB9DBCA4976 /* ShinobiTermApp.swift in Sources */,
 				DBD3F4BC548BAFD7F481D7EC /* ShinobiTerminalView.swift in Sources */,
@@ -316,18 +331,18 @@
 		};
 		B11360519C41A8A29D26595A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = DD01480F5824FD40C9558B59 /* local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				CURRENT_PROJECT_VERSION = 2;
 				INFOPLIST_FILE = ShinobiTerm/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rettuce.shinobiterm;
 				SDKROOT = iphoneos;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -403,18 +418,18 @@
 		};
 		F51CF2FA9DEDC8DA1B32A9B2 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = DD01480F5824FD40C9558B59 /* local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				CURRENT_PROJECT_VERSION = 2;
 				INFOPLIST_FILE = ShinobiTerm/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rettuce.shinobiterm;
 				SDKROOT = iphoneos;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;

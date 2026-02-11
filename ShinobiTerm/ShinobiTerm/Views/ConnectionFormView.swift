@@ -59,8 +59,8 @@ struct ConnectionFormView: View {
                     .background(Color("greenPrimary"))
                     .cornerRadius(10)
                 }
-                .disabled(name.isEmpty || hostname.isEmpty || username.isEmpty)
-                .opacity(name.isEmpty || hostname.isEmpty || username.isEmpty ? 0.5 : 1)
+                .disabled(!canSave)
+                .opacity(canSave ? 1 : 0.5)
 
                 // Test button
                 Button {
@@ -100,11 +100,10 @@ struct ConnectionFormView: View {
                         }
                         .foregroundStyle(Color("greenPrimary"))
                     case .failure(let message):
-                        HStack(spacing: 6) {
+                        HStack(alignment: .top, spacing: 6) {
                             Image(systemName: "xmark.circle.fill")
                             Text(message)
                                 .font(.system(size: 12, design: .monospaced))
-                                .lineLimit(1)
                         }
                         .foregroundStyle(Color("redError"))
                     }
@@ -121,7 +120,7 @@ struct ConnectionFormView: View {
                 Button("Save") { save() }
                     .fontWeight(.semibold)
                     .foregroundStyle(Color("greenPrimary"))
-                    .disabled(name.isEmpty || hostname.isEmpty || username.isEmpty)
+                    .disabled(!canSave)
             }
         }
         .onAppear {
@@ -303,6 +302,12 @@ struct ConnectionFormView: View {
         Text(text)
             .font(.system(size: 11, design: .monospaced))
             .foregroundStyle(Color("textTertiary"))
+    }
+
+    private var canSave: Bool {
+        guard !name.isEmpty, !hostname.isEmpty, !username.isEmpty else { return false }
+        if authMethod == .sshKey && selectedKeyId == nil { return false }
+        return true
     }
 
     // MARK: - Actions

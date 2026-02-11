@@ -126,7 +126,7 @@ struct SettingsView: View {
             sectionLabel("// terminal")
 
             VStack(spacing: 0) {
-                settingRow(label: "scrollback_buffer", value: settings.scrollbackLines.formatted())
+                settingRow(label: "scrollback_buffer", value: settings.scrollbackLines.formatted(), showChevron: false)
 
                 settingDivider
 
@@ -265,7 +265,7 @@ struct SettingsView: View {
             sectionLabel("// about")
 
             VStack(spacing: 0) {
-                settingRow(label: "version", value: "\(Bundle.main.shortVersion)")
+                settingRow(label: "version", value: "\(Bundle.main.shortVersion)", showChevron: false)
 
                 settingDivider
 
@@ -291,7 +291,7 @@ struct SettingsView: View {
 
                 settingDivider
 
-                settingRow(label: "license", value: "MIT")
+                settingRow(label: "license", value: "MIT", showChevron: false)
 
                 settingDivider
 
@@ -312,7 +312,7 @@ struct SettingsView: View {
 
     // MARK: - Components
 
-    private func settingRow(label: String, value: String) -> some View {
+    private func settingRow(label: String, value: String, showChevron: Bool = true) -> some View {
         HStack {
             Text(label)
                 .font(.system(size: 14, design: .monospaced))
@@ -323,9 +323,11 @@ struct SettingsView: View {
                     .font(.system(size: 14, design: .monospaced))
                     .foregroundStyle(Color("textSecondary"))
             }
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12))
-                .foregroundStyle(Color("textTertiary"))
+            if showChevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color("textTertiary"))
+            }
         }
         .padding(.horizontal, 16)
         .frame(height: 48)

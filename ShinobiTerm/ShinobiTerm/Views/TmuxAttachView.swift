@@ -15,6 +15,7 @@ struct TmuxAttachView: View {
     @State private var showTerminal = false
     @State private var activeSession: SSHSession?
     @State private var tmuxCommand: String?
+    @State private var connectionError: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -72,7 +73,23 @@ struct TmuxAttachView: View {
                     .background(.black)
             }
         }
+        .alert("connection error", isPresented: showConnectionError) {
+            Button("Copy") {
+                UIPasteboard.general.string = connectionError
+                connectionError = nil
+            }
+            Button("OK") { connectionError = nil }
+        } message: {
+            Text(connectionError ?? "")
+        }
         .preferredColorScheme(.dark)
+    }
+
+    private var showConnectionError: Binding<Bool> {
+        Binding(
+            get: { connectionError != nil },
+            set: { if !$0 { connectionError = nil } }
+        )
     }
 
     // MARK: - Host Info
@@ -218,6 +235,12 @@ struct TmuxAttachView: View {
             await connectSession(session, profile: profile)
         }
 
+        if case .error(let message) = session.state {
+            connectionError = message
+            isLoading = false
+            return
+        }
+
         try? await Task.sleep(for: .seconds(2))
         sessions = await TmuxService.listSessions(session: session)
         isLoading = false
@@ -251,6 +274,11 @@ struct TmuxAttachView: View {
             // Reconnect if session was disconnected
             Task {
                 await connectSession(session, profile: profile)
+                if case .error(let message) = session.state {
+                    connectionError = message
+                    isConnecting = false
+                    return
+                }
                 if session.state == .connected {
                     activeSession = session
                     showTerminal = true
@@ -271,10 +299,14 @@ struct TmuxAttachView: View {
                 password: password
             )
         case .sshKey:
-            let privateKey: Curve25519.Signing.PrivateKey? = {
-                guard let keyId = profile.sshKeyId else { return nil }
-                return try? SSHKeyService.loadPrivateKey(keyId: keyId)
-            }()
+            guard let keyId = profile.sshKeyId else {
+                connectionError = "No SSH key selected. Go to Settings > SSH Keys to generate one, or switch to password auth."
+                return
+            }
+            guard let privateKey = try? SSHKeyService.loadPrivateKey(keyId: keyId) else {
+                connectionError = "SSH key not found in Keychain. It may have been deleted. Re-generate in Settings > SSH Keys."
+                return
+            }
             await session.connect(
                 hostname: profile.hostname,
                 port: profile.port,

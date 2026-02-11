@@ -11,6 +11,7 @@ struct ConnectionListView: View {
     @State private var selectedTmuxProfile: ConnectionProfile?
     @State private var activeTerminalProfile: ConnectionProfile?
     @State private var quickConnectText = ""
+    @State private var connectionError: String?
 
     var body: some View {
         NavigationStack {
@@ -43,6 +44,15 @@ struct ConnectionListView: View {
                     profile: profile,
                     connectionManager: connectionManager
                 )
+            }
+            .alert("connection error", isPresented: showConnectionError) {
+                Button("Copy") {
+                    UIPasteboard.general.string = connectionError
+                    connectionError = nil
+                }
+                Button("OK") { connectionError = nil }
+            } message: {
+                Text(connectionError ?? "")
             }
             .fullScreenCover(item: $activeTerminalProfile) { profile in
                 let profileId = profile.profileId
@@ -276,10 +286,14 @@ struct ConnectionListView: View {
                     password: password
                 )
             case .sshKey:
-                let privateKey: Curve25519.Signing.PrivateKey? = {
-                    guard let keyId = profile.sshKeyId else { return nil }
-                    return try? SSHKeyService.loadPrivateKey(keyId: keyId)
-                }()
+                guard let keyId = profile.sshKeyId else {
+                    connectionError = "No SSH key selected. Go to Settings > SSH Keys to generate one, or switch to password auth."
+                    return
+                }
+                guard let privateKey = try? SSHKeyService.loadPrivateKey(keyId: keyId) else {
+                    connectionError = "SSH key not found in Keychain. It may have been deleted. Re-generate in Settings > SSH Keys."
+                    return
+                }
                 await session.connect(
                     hostname: profile.hostname,
                     port: profile.port,
@@ -287,6 +301,11 @@ struct ConnectionListView: View {
                     authMethod: .sshKey,
                     privateKey: privateKey
                 )
+            }
+
+            if case .error(let message) = session.state {
+                connectionError = message
+                return
             }
             guard session.state == .connected else { return }
             profile.lastConnectedAt = Date()
@@ -312,6 +331,10 @@ struct ConnectionListView: View {
                 username: username,
                 password: ""
             )
+            if case .error(let message) = session.state {
+                connectionError = message
+                return
+            }
             guard session.state == .connected else { return }
             // Create a temporary profile for the terminal view
             let profile = ConnectionProfile(
@@ -324,6 +347,13 @@ struct ConnectionListView: View {
             profile.lastConnectedAt = Date()
             activeTerminalProfile = profile
         }
+    }
+
+    private var showConnectionError: Binding<Bool> {
+        Binding(
+            get: { connectionError != nil },
+            set: { if !$0 { connectionError = nil } }
+        )
     }
 
     private func deleteProfile(_ profile: ConnectionProfile) {

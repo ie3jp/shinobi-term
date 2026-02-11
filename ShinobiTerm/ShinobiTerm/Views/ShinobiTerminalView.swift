@@ -2,6 +2,27 @@ import SwiftTerm
 import SwiftUI
 import UIKit
 
+// MARK: - Bottom-Anchored Terminal View
+
+/// リサイズ時に最下部を維持するTerminalViewサブクラス
+class BottomAnchoredTerminalView: TerminalView {
+    private var isAdjustingOffset = false
+
+    override func layoutSubviews() {
+        let wasAtBottom = contentOffset.y >= contentSize.height - bounds.height - 1
+        super.layoutSubviews()
+        guard !isAdjustingOffset, wasAtBottom else { return }
+        let bottomY = max(0, contentSize.height - bounds.height)
+        if abs(contentOffset.y - bottomY) > 1 {
+            isAdjustingOffset = true
+            contentOffset = CGPoint(x: 0, y: bottomY)
+            isAdjustingOffset = false
+        }
+    }
+}
+
+// MARK: - ShinobiTerminalView
+
 struct ShinobiTerminalView: UIViewRepresentable {
     let session: SSHSession
     var fontName: String = "Menlo"
@@ -12,7 +33,7 @@ struct ShinobiTerminalView: UIViewRepresentable {
     var onSizeChanged: ((Int, Int) -> Void)?
 
     func makeUIView(context: Context) -> TerminalView {
-        let terminalView = TerminalView(frame: .zero)
+        let terminalView = BottomAnchoredTerminalView(frame: .zero)
         terminalView.backgroundColor = .black
         terminalView.nativeBackgroundColor = .black
         terminalView.nativeForegroundColor = UIColor(white: 0.9, alpha: 1.0)
@@ -37,8 +58,13 @@ struct ShinobiTerminalView: UIViewRepresentable {
     }
 
     func updateUIView(_ terminalView: TerminalView, context: Context) {
-        let font = FontManager.terminalFont(name: fontName, size: fontSize)
-        terminalView.font = font
+        // フォント変更時のみ再設定（不要な再レイアウト・スクロールリセットを防止）
+        if context.coordinator.lastFontName != fontName || context.coordinator.lastFontSize != fontSize {
+            let font = FontManager.terminalFont(name: fontName, size: fontSize)
+            terminalView.font = font
+            context.coordinator.lastFontName = fontName
+            context.coordinator.lastFontSize = fontSize
+        }
         context.coordinator.hapticFeedback = hapticFeedback
     }
 
@@ -51,6 +77,8 @@ struct ShinobiTerminalView: UIViewRepresentable {
         var terminalView: TerminalView?
         var hapticFeedback: Bool
         var onSizeChanged: ((Int, Int) -> Void)?
+        var lastFontName: String = ""
+        var lastFontSize: CGFloat = 0
         private let hapticGenerator = UIImpactFeedbackGenerator(style: .medium)
 
         init(session: SSHSession, hapticFeedback: Bool, onSizeChanged: ((Int, Int) -> Void)?) {
@@ -67,10 +95,12 @@ struct ShinobiTerminalView: UIViewRepresentable {
                 guard let terminalView = self?.terminalView else { return }
                 let bytes = ArraySlice([UInt8](data))
                 terminalView.feed(byteArray: bytes)
-                // 最下部にスクロールして最新の出力を表示
-                let bottomY = max(0, terminalView.contentSize.height - terminalView.bounds.height)
-                if terminalView.contentOffset.y < bottomY {
-                    terminalView.contentOffset = CGPoint(x: 0, y: bottomY)
+                // レイアウト完了後に最下部へスクロール（アニメーションなし）
+                DispatchQueue.main.async {
+                    let bottomY = max(0, terminalView.contentSize.height - terminalView.bounds.height)
+                    if terminalView.contentOffset.y < bottomY {
+                        terminalView.setContentOffset(CGPoint(x: 0, y: bottomY), animated: false)
+                    }
                 }
             }
         }

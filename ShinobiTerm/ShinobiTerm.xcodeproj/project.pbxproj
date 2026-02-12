@@ -17,6 +17,7 @@
 		2AEC83726A4F5873AF474E94 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26D05DA878BE9BBDBF5ADE11 /* AppSettings.swift */; };
 		4587E7C39EF51DA7D869DEE7 /* SSHKeyManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA8737EF39D1CBA6323DBA5 /* SSHKeyManagementView.swift */; };
 		496FEA0C6D28DA457C7AE2A1 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = CF897CAD1A8FFC1096C6E000 /* Citadel */; };
+		52D81917DC53FBE2A9D53A60 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 37B785A606C09CCDA9B1E1F6 /* PrivacyInfo.xcprivacy */; };
 		546F39CDFCEB1826F1EA852E /* SSHKeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C4D1E369C2E5188E4ADB48D /* SSHKeyService.swift */; };
 		63B428D8E299375C4363E76E /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130BFE3A60EBA7017FA548C6 /* KeychainService.swift */; };
 		6E646055AE492952F340D48A /* FontManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1ACFCA9EE47CBFADEA7C38 /* FontManager.swift */; };
@@ -41,6 +42,7 @@
 		16015A2EB410033BCAD906EE /* TipJarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipJarService.swift; sourceTree = "<group>"; };
 		26D05DA878BE9BBDBF5ADE11 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		34A65AD0AFED47311E6D167B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		37B785A606C09CCDA9B1E1F6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3C4D1E369C2E5188E4ADB48D /* SSHKeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHKeyService.swift; sourceTree = "<group>"; };
 		461A847203A8B33B6B03CD48 /* TipJar.storekit */ = {isa = PBXFileReference; path = TipJar.storekit; sourceTree = "<group>"; };
 		4772414CC65722C3C25D0860 /* SSHSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHSession.swift; sourceTree = "<group>"; };
@@ -148,6 +150,7 @@
 				CE11118F620376902A1388DE /* Assets.xcassets */,
 				34A65AD0AFED47311E6D167B /* ContentView.swift */,
 				767D6F3E649FAFFF41ED5F9A /* Info.plist */,
+				37B785A606C09CCDA9B1E1F6 /* PrivacyInfo.xcprivacy */,
 				E97F07970261788109324294 /* ShinobiTermApp.swift */,
 				BAB900F87DCC9863D9643EB3 /* Models */,
 				ECDFF0431674C6FCC342E7B0 /* Resources */,
@@ -199,6 +202,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					3BC5274FA8942DAC8BF55B03 = {
+						DevelopmentTeam = VGVDSVNBZG;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -232,6 +236,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CF4BB5E4CA084CDC5F12D319 /* Assets.xcassets in Resources */,
+				52D81917DC53FBE2A9D53A60 /* PrivacyInfo.xcprivacy in Resources */,
 				8681104EE542150DE06E81F3 /* TipJar.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -335,7 +340,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				INFOPLIST_FILE = ShinobiTerm/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -422,7 +427,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				INFOPLIST_FILE = ShinobiTerm/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

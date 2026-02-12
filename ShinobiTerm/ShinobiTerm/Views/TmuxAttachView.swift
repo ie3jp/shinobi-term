@@ -3,11 +3,15 @@ import SwiftData
 import SwiftUI
 
 struct TmuxAttachView: View {
-    let profile: ConnectionProfile
+    let initialProfileId: String
     let connectionManager: SSHConnectionManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
+    @Query(sort: \ConnectionProfile.lastConnectedAt, order: .reverse)
+    private var allProfiles: [ConnectionProfile]
+
+    @State private var selectedProfileId: String
     @State private var sessions: [TmuxSession] = []
     @State private var manualSessionName = ""
     @State private var isLoading = true
@@ -17,12 +21,22 @@ struct TmuxAttachView: View {
     @State private var tmuxCommand: String?
     @State private var connectionError: String?
 
+    private var currentProfile: ConnectionProfile? {
+        allProfiles.first { $0.profileId == selectedProfileId }
+    }
+
+    init(profile: ConnectionProfile, connectionManager: SSHConnectionManager) {
+        self.initialProfileId = profile.profileId
+        self._selectedProfileId = State(initialValue: profile.profileId)
+        self.connectionManager = connectionManager
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 16) {
-                    // Host info bar
-                    hostInfoBar
+                    // Host dropdown
+                    hostDropdown
 
                     if isLoading {
                         ProgressView()
@@ -59,7 +73,7 @@ struct TmuxAttachView: View {
             await connectAndListSessions()
         }
         .fullScreenCover(isPresented: $showTerminal) {
-            if let session = activeSession {
+            if let session = activeSession, let profile = currentProfile {
                 TerminalContainerView(
                     session: session,
                     profileName: profile.name,
@@ -92,29 +106,48 @@ struct TmuxAttachView: View {
         )
     }
 
-    // MARK: - Host Info
+    // MARK: - Host Dropdown
 
-    private var hostInfoBar: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "desktopcomputer")
-                .font(.system(size: 16))
-                .foregroundStyle(Color("greenPrimary"))
-            Text(profile.name)
-                .font(.system(size: 13, weight: .medium, design: .monospaced))
-                .foregroundStyle(Color("textPrimary"))
-            Text("// \(profile.username)@\(profile.hostname)")
-                .font(.system(size: 11, design: .monospaced))
-                .foregroundStyle(Color("textMuted"))
-            Spacer()
+    private var hostDropdown: some View {
+        Menu {
+            ForEach(allProfiles) { p in
+                Button {
+                    switchProfile(to: p)
+                } label: {
+                    if p.profileId == selectedProfileId {
+                        Label(p.name, systemImage: "checkmark")
+                    } else {
+                        Text(p.name)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "desktopcomputer")
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color("greenPrimary"))
+                if let profile = currentProfile {
+                    Text(profile.name)
+                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color("textPrimary"))
+                    Text("// \(profile.username)@\(profile.hostname)")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(Color("textMuted"))
+                }
+                Spacer()
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color("textTertiary"))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color("bgSurface"))
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color("borderPrimary"), lineWidth: 1)
+            )
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color("bgSurface"))
-        .cornerRadius(8)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color("borderPrimary"), lineWidth: 1)
-        )
     }
 
     // MARK: - Sessions List
@@ -203,7 +236,7 @@ struct TmuxAttachView: View {
 
                 Button {
                     let name = manualSessionName.isEmpty
-                        ? (profile.lastTmuxSession ?? "0")
+                        ? (currentProfile?.lastTmuxSession ?? "0")
                         : manualSessionName
                     attachToSession(name)
                 } label: {
@@ -227,7 +260,22 @@ struct TmuxAttachView: View {
             .foregroundStyle(Color("textTertiary"))
     }
 
+    private func switchProfile(to profile: ConnectionProfile) {
+        guard profile.profileId != selectedProfileId else { return }
+        selectedProfileId = profile.profileId
+        sessions = []
+        isLoading = true
+        connectionError = nil
+        Task {
+            await connectAndListSessions()
+        }
+    }
+
     private func connectAndListSessions() async {
+        guard let profile = currentProfile else {
+            isLoading = false
+            return
+        }
         let profileId = profile.profileId
         let session = connectionManager.createSession(for: profileId)
 
@@ -247,6 +295,7 @@ struct TmuxAttachView: View {
     }
 
     private func refreshSessions() async {
+        guard let profile = currentProfile else { return }
         isLoading = true
         let profileId = profile.profileId
         if let session = connectionManager.sessions[profileId] {
@@ -256,6 +305,7 @@ struct TmuxAttachView: View {
     }
 
     private func attachToSession(_ sessionName: String) {
+        guard let profile = currentProfile else { return }
         isConnecting = true
         let profileId = profile.profileId
 
@@ -271,7 +321,6 @@ struct TmuxAttachView: View {
             showTerminal = true
             isConnecting = false
         } else {
-            // Reconnect if session was disconnected
             Task {
                 await connectSession(session, profile: profile)
                 if case .error(let message) = session.state {

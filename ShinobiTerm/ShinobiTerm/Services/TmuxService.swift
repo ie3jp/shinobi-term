@@ -8,30 +8,30 @@ struct TmuxSession: Identifiable {
     let windowCount: Int
     let isAttached: Bool
     let createdAt: String
+    let activityAt: TimeInterval
 
-    static func parseLine(_ line: String) -> TmuxSession? {
-        let parts = line.split(separator: ":", maxSplits: 1)
-        guard parts.count == 2 else { return nil }
+    private static let delimiter = "@@"
 
-        let name = String(parts[0]).trimmingCharacters(in: .whitespaces)
-        let rest = String(parts[1]).trimmingCharacters(in: .whitespaces)
+    static func parseFormatted(_ line: String) -> TmuxSession? {
+        let fields = line.components(separatedBy: delimiter)
+        guard fields.count >= 5 else { return nil }
 
-        guard rest.contains("window") else { return nil }
+        let name = String(fields[0])
+        guard !name.isEmpty else { return nil }
 
-        var windowCount = 1
-        if let windowMatch = rest.range(of: #"(\d+) windows?"#, options: .regularExpression) {
-            let countStr = rest[windowMatch].split(separator: " ").first.map(String.init) ?? "1"
-            windowCount = Int(countStr) ?? 1
-        }
+        let windowCount = Int(fields[1]) ?? 1
+        let isAttached = (Int(fields[2]) ?? 0) > 0
+        let activityAt = TimeInterval(fields[3]) ?? 0
+        let createdTimestamp = TimeInterval(fields[4]) ?? 0
 
-        let isAttached = rest.contains("(attached)")
-
-        var createdAt = ""
-        if let createdRange = rest.range(of: #"\(created (.+?)\)"#, options: .regularExpression) {
-            let match = String(rest[createdRange])
-            createdAt = match
-                .replacingOccurrences(of: "(created ", with: "")
-                .replacingOccurrences(of: ")", with: "")
+        let createdAt: String
+        if createdTimestamp > 0 {
+            let date = Date(timeIntervalSince1970: createdTimestamp)
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            createdAt = formatter.string(from: date)
+        } else {
+            createdAt = ""
         }
 
         return TmuxSession(
@@ -39,7 +39,8 @@ struct TmuxSession: Identifiable {
             name: name,
             windowCount: windowCount,
             isAttached: isAttached,
-            createdAt: createdAt
+            createdAt: createdAt,
+            activityAt: activityAt
         )
     }
 }
@@ -52,14 +53,17 @@ struct TmuxService {
         }
 
         do {
-            var buffer = try await client.executeCommand("bash -lc 'tmux ls' 2>/dev/null || true")
+            let cmd = "bash -lc 'tmux ls -F \"#{session_name}@@#{session_windows}@@#{session_attached}@@#{session_activity}@@#{session_created}\"' 2>/dev/null || true"
+            var buffer = try await client.executeCommand(cmd)
             let output = buffer.readString(length: buffer.readableBytes) ?? ""
 
-            return output.split(separator: "\n").compactMap { line in
+            let sessions: [TmuxSession] = output.split(separator: "\n").compactMap { line in
                 let lineStr = String(line).trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !lineStr.isEmpty else { return nil }
-                return TmuxSession.parseLine(lineStr)
+                return TmuxSession.parseFormatted(lineStr)
             }
+
+            return sessions.sorted { $0.activityAt > $1.activityAt }
         } catch {
             return []
         }

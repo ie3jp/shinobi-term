@@ -5,6 +5,7 @@ struct ExtraKeysView: View {
     var isCtrlActive: Bool = false
     var isAltActive: Bool = false
     var isReadActive: Bool = false
+    var isClaudeActive: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,7 +24,7 @@ struct ExtraKeysView: View {
                     .frame(height: 1)
             }
 
-            // Row 2: Read, ←, ↓, →, ⌨
+            // Row 2: Read, ←, ↓, →, 👾, ⌨
             HStack(spacing: 4) {
                 extraKeyButton(.read)
                     .frame(maxWidth: .infinity)
@@ -32,6 +33,7 @@ struct ExtraKeysView: View {
                     extraKeyButton(key)
                 }
                 Spacer()
+                extraKeyButton(.claude)
                 extraKeyButton(.keyboard)
                     .frame(maxWidth: .infinity)
             }
@@ -45,6 +47,7 @@ struct ExtraKeysView: View {
         let isActive = (key == .ctrl && isCtrlActive)
             || (key == .alt && isAltActive)
             || (key == .read && isReadActive)
+            || (key == .claude && isClaudeActive)
 
         return Button {
             onKey(key)
@@ -64,7 +67,7 @@ struct ExtraKeysView: View {
 enum ExtraKey: Equatable {
     case esc, ctrl, alt, tab, enter, tilde, pipe, slash
     case arrowUp, arrowDown, arrowLeft, arrowRight
-    case read, keyboard
+    case read, keyboard, claude
 
     var label: String {
         switch self {
@@ -82,6 +85,7 @@ enum ExtraKey: Equatable {
         case .arrowRight: return "\u{2192}"
         case .read: return "Read"
         case .keyboard: return "\u{2328}"
+        case .claude: return "\u{1F47E}"
         }
     }
 
@@ -92,6 +96,7 @@ enum ExtraKey: Equatable {
         case .arrowUp, .arrowDown, .arrowLeft, .arrowRight: return 14
         case .read: return 12
         case .keyboard: return 48
+        case .claude: return 20
         default: return 13
         }
     }
@@ -108,7 +113,7 @@ enum ExtraKey: Equatable {
         case .arrowDown: return Data([0x1B, 0x5B, 0x42])
         case .arrowRight: return Data([0x1B, 0x5B, 0x43])
         case .arrowLeft: return Data([0x1B, 0x5B, 0x44])
-        case .ctrl, .alt, .read, .keyboard: return Data()
+        case .ctrl, .alt, .read, .keyboard, .claude: return Data()
         }
     }
 

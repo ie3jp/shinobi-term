@@ -43,6 +43,12 @@ struct TerminalContainerView: View {
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
 
+    // Claude Usage
+    @State private var isClaudeUsageVisible = false
+    @State private var claudeUsage: ClaudeUsage?
+    @State private var isLoadingUsage = false
+    @State private var claudeUsageError: String?
+
     var body: some View {
         GeometryReader { geometry in
             let optimalFontSize = FontManager.optimalFontSize(
@@ -82,6 +88,21 @@ struct TerminalContainerView: View {
                         .padding(.bottom, 8)
                     }
 
+                    if isClaudeUsageVisible {
+                        VStack {
+                            Spacer()
+                            ClaudeUsageOverlayView(
+                                usage: claudeUsage,
+                                isLoading: isLoadingUsage,
+                                errorMessage: claudeUsageError,
+                                onRefresh: { fetchClaudeUsage() },
+                                onDismiss: { isClaudeUsageVisible = false }
+                            )
+                        }
+                        .padding(.bottom, 8)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+
                 }
                 .clipped()
 
@@ -89,7 +110,8 @@ struct TerminalContainerView: View {
                     onKey: { handleExtraKey($0) },
                     isCtrlActive: isCtrlActive,
                     isAltActive: isAltActive,
-                    isReadActive: isReadMode
+                    isReadActive: isReadMode,
+                    isClaudeActive: isClaudeUsageVisible
                 )
 
                 InputBarView(
@@ -307,6 +329,29 @@ struct TerminalContainerView: View {
         }
     }
 
+    // MARK: - Claude Usage
+
+    private func toggleClaudeUsage() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isClaudeUsageVisible.toggle()
+        }
+        if isClaudeUsageVisible {
+            fetchClaudeUsage()
+        }
+    }
+
+    private func fetchClaudeUsage() {
+        guard !isLoadingUsage else { return }
+        isLoadingUsage = true
+        claudeUsageError = nil
+        Task {
+            let result = await ClaudeUsageService.fetchUsage(session: session)
+            claudeUsage = result.usage
+            claudeUsageError = result.error
+            isLoadingUsage = false
+        }
+    }
+
     // MARK: - Extra Keys
 
     private func handleExtraKey(_ key: ExtraKey) {
@@ -319,6 +364,8 @@ struct TerminalContainerView: View {
             toggleReadMode()
         case .keyboard:
             isInputFocused.toggle()
+        case .claude:
+            toggleClaudeUsage()
         default:
             if isCtrlActive {
                 isCtrlActive = false

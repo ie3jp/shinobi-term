@@ -33,8 +33,9 @@ Package.resolved
 ._*
 
 # Claude Code
-.claude/settings.local.json
+.claude/
 CLAUDE.md
+HANDOVER-*.md
 
 # Pencil
 # .pen files are tracked (design assets)
@@ -48,6 +49,7 @@ plan/
 # Private / non-public files
 ignore/
 scripts/
+.entire/
 
 # Local build settings (contains Team ID)
 local.xcconfig

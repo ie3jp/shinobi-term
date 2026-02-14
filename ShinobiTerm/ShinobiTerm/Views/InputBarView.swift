@@ -17,7 +17,7 @@ struct InputBarView: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .focused(isFocused)
-                .lineLimit(1...3)
+                .lineLimit(1...10)
 
             Button(action: onSend) {
                 Image(systemName: "arrow.up.circle.fill")

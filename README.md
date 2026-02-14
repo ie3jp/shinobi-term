@@ -31,11 +31,14 @@ Leave Claude Code running in tmux on your Mac. Pick up where you left off from a
 
 ## Features
 
-- **One-tap tmux attach** — Browse sessions, select, and connect instantly
+- **One-tap tmux attach** — Browse sessions sorted by last activity, select, and connect instantly
+- **Claude Usage monitor** — Check API usage (session / weekly) via OAuth, displayed as color-coded overlay
+- **Read mode** — Scroll, pan, and pinch-zoom terminal output with font size control
 - **CJK-first rendering** — Japanese, Chinese, and Korean text displays correctly (Menlo + Hiragino Sans fallback)
-- **Extended keyboard** — Ctrl, Alt, Esc, Tab, arrow keys
+- **Extended keyboard** — Ctrl, Alt, Esc, Tab, arrow keys + expandable multi-line input bar
 - **SSH key auth** — Generate Ed25519 keys on-device; private keys stored in iOS Keychain
-- **Scroll mode** — Browse output history with automatic tmux copy-mode integration
+- **Host switching** — Quick-switch between saved connections via dropdown
+- **Font size settings** — Adjustable terminal font size, persisted across sessions
 - **Free & open source** — MIT License, no ads, no tracking
 
 ## Quick Start
@@ -102,9 +105,12 @@ xcodebuild -scheme ShinobiTerm -destination 'platform=iOS Simulator,name=iPhone 
 
 ```
 ShinobiTerm/ShinobiTerm/
+├── ShinobiTermApp.swift              # App entry point
+├── ContentView.swift                 # Root view
 ├── Models/
 │   ├── ConnectionProfile.swift       # Connection profiles (SwiftData)
-│   └── AppSettings.swift             # App settings
+│   ├── AppSettings.swift             # App settings
+│   └── ClaudeUsage.swift             # Claude API usage metrics
 ├── Views/
 │   ├── ConnectionListView.swift      # Connection list
 │   ├── ConnectionFormView.swift      # Add / edit connection
@@ -112,6 +118,9 @@ ShinobiTerm/ShinobiTerm/
 │   ├── TerminalContainerView.swift   # Terminal + extended keyboard
 │   ├── ShinobiTerminalView.swift     # SwiftTerm wrapper
 │   ├── ExtraKeysView.swift           # Extended keyboard
+│   ├── InputBarView.swift            # Multi-line input bar
+│   ├── ScrollOverlayView.swift       # Read mode gesture overlay
+│   ├── ClaudeUsageOverlayView.swift  # Claude usage display
 │   ├── SSHKeyManagementView.swift    # SSH key management
 │   └── SettingsView.swift            # Settings
 └── Services/
@@ -119,6 +128,8 @@ ShinobiTerm/ShinobiTerm/
     ├── SSHConnectionManager.swift    # Session lifecycle
     ├── SSHKeyService.swift           # Ed25519 keygen + Keychain
     ├── TmuxService.swift             # tmux ls / attach
+    ├── ClaudeUsageService.swift      # Claude API usage via OAuth
+    ├── FontManager.swift             # Terminal font management
     ├── TipJarService.swift           # StoreKit 2 Tip Jar
     └── KeychainService.swift         # Keychain read/write
 ```
@@ -166,11 +177,14 @@ tmux セッションはデタッチしても維持されるため、接続が切
 
 ### 主な機能
 
-- **tmux ワンタップ attach** — セッション一覧から選んで即接続
+- **tmux ワンタップ attach** — 最終アクティビティ順のセッション一覧から選んで即接続
+- **Claude Usage モニター** — OAuth 経由で API 使用量（セッション / 週間）を確認
+- **Read モード** — スクロール・パン・ピンチズームでターミナル出力を閲覧、フォントサイズ調整可能
 - **CJK 対応** — 日本語・中国語・韓国語が正しく表示される
-- **拡張キーボード** — Ctrl, Alt, Esc, Tab, 矢印キー
+- **拡張キーボード** — Ctrl, Alt, Esc, Tab, 矢印キー + 複数行入力バー
 - **SSH 鍵認証** — デバイス上で Ed25519 鍵ペアを生成、Keychain に安全に保管
-- **スクロールモード** — tmux copy-mode 連動で出力履歴を閲覧
+- **ホスト切替** — ドロップダウンで保存済み接続先を素早く切替
+- **フォントサイズ設定** — ターミナルのフォントサイズを調整、セッション間で保持
 - **無料・OSS** — MIT License、広告なし、トラッキングなし
 
 </details>

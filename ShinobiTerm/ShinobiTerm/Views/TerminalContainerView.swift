@@ -50,12 +50,7 @@ struct TerminalContainerView: View {
     @State private var claudeUsageError: String?
 
     var body: some View {
-        GeometryReader { geometry in
-            let optimalFontSize = FontManager.optimalFontSize(
-                for: geometry.size.width,
-                fontName: fontName
-            )
-
+        GeometryReader { _ in
             VStack(spacing: 0) {
                 terminalBar
 
@@ -63,7 +58,7 @@ struct TerminalContainerView: View {
                     ShinobiTerminalView(
                         session: session,
                         fontName: fontName,
-                        fontSize: optimalFontSize,
+                        fontSize: settings.fontSize,
                         scrollbackLines: settings.scrollbackLines,
                         hapticFeedback: settings.hapticFeedback,
                         autoFocus: false
@@ -187,39 +182,73 @@ struct TerminalContainerView: View {
     // MARK: - Read Mode Controls
 
     private var readModeControls: some View {
-        HStack(spacing: 16) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    terminalScale = max(1.0, terminalScale - 0.5)
-                    if terminalScale <= 1.0 { terminalOffset = .zero }
+        VStack(spacing: 8) {
+            // Font size controls
+            HStack(spacing: 12) {
+                Button {
+                    if settings.fontSize > 8 { settings.fontSize -= 1 }
+                } label: {
+                    Image(systemName: "textformat.size.smaller")
+                        .font(.system(size: 14))
+                        .foregroundStyle(
+                            settings.fontSize <= 8 ? Color("textTertiary") : Color("textPrimary")
+                        )
                 }
-            } label: {
-                Image(systemName: "minus.magnifyingglass")
-                    .font(.system(size: 16))
-                    .foregroundStyle(
-                        terminalScale <= 1.0 ? Color("textTertiary") : Color("textPrimary")
-                    )
-            }
-            .disabled(terminalScale <= 1.0)
+                .disabled(settings.fontSize <= 8)
 
-            if terminalScale > 1.0 {
-                Text("\(Int(terminalScale * 100))%")
+                Text("\(Int(settings.fontSize))px")
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundStyle(Color("textMuted"))
+                    .monospacedDigit()
+                    .frame(minWidth: 32)
+
+                Button {
+                    if settings.fontSize < 32 { settings.fontSize += 1 }
+                } label: {
+                    Image(systemName: "textformat.size.larger")
+                        .font(.system(size: 14))
+                        .foregroundStyle(
+                            settings.fontSize >= 32 ? Color("textTertiary") : Color("textPrimary")
+                        )
+                }
+                .disabled(settings.fontSize >= 32)
             }
 
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    terminalScale = min(4.0, terminalScale + 0.5)
+            // Zoom controls
+            HStack(spacing: 16) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        terminalScale = max(1.0, terminalScale - 0.5)
+                        if terminalScale <= 1.0 { terminalOffset = .zero }
+                    }
+                } label: {
+                    Image(systemName: "minus.magnifyingglass")
+                        .font(.system(size: 16))
+                        .foregroundStyle(
+                            terminalScale <= 1.0 ? Color("textTertiary") : Color("textPrimary")
+                        )
                 }
-            } label: {
-                Image(systemName: "plus.magnifyingglass")
-                    .font(.system(size: 16))
-                    .foregroundStyle(
-                        terminalScale >= 4.0 ? Color("textTertiary") : Color("textPrimary")
-                    )
+                .disabled(terminalScale <= 1.0)
+
+                if terminalScale > 1.0 {
+                    Text("\(Int(terminalScale * 100))%")
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color("textMuted"))
+                }
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        terminalScale = min(4.0, terminalScale + 0.5)
+                    }
+                } label: {
+                    Image(systemName: "plus.magnifyingglass")
+                        .font(.system(size: 16))
+                        .foregroundStyle(
+                            terminalScale >= 4.0 ? Color("textTertiary") : Color("textPrimary")
+                        )
+                }
+                .disabled(terminalScale >= 4.0)
             }
-            .disabled(terminalScale >= 4.0)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 10)

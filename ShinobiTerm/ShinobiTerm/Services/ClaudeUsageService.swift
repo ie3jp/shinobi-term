@@ -9,85 +9,103 @@ struct ClaudeUsageResult {
 
 struct ClaudeUsageService {
 
+    // Python script that runs entirely on the remote Mac.
+    // Reads credentials, calls Usage API, refreshes token on 401, retries.
+    private static let remoteScript = #"""
+import json, urllib.request, urllib.error, os, sys
+
+CREDS = os.path.expanduser("~/.claude/.credentials.json")
+CLIENT_ID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
+USAGE_URL = "https://api.anthropic.com/api/oauth/usage"
+TOKEN_URL = "https://console.anthropic.com/api/oauth/token"
+
+def load_creds():
+    with open(CREDS) as f:
+        return json.load(f)
+
+def call_usage(token):
+    req = urllib.request.Request(USAGE_URL)
+    req.add_header("Authorization", f"Bearer {token}")
+    req.add_header("anthropic-beta", "oauth-2025-04-20")
+    req.add_header("User-Agent", "claude-code/2.1.5")
+    return json.loads(urllib.request.urlopen(req, timeout=10).read())
+
+def refresh(rt):
+    body = json.dumps({"grant_type":"refresh_token","refresh_token":rt,"client_id":CLIENT_ID}).encode()
+    req = urllib.request.Request(TOKEN_URL, data=body)
+    req.add_header("Content-Type", "application/json")
+    return json.loads(urllib.request.urlopen(req, timeout=10).read())
+
+try:
+    creds = load_creds()
+    oauth = creds.get("claudeAiOauth", {})
+    token = oauth.get("accessToken", "")
+    if not token:
+        print(json.dumps({"error": "Mac で Claude Code にログインしてください"}))
+        sys.exit(0)
+
+    try:
+        print(json.dumps(call_usage(token)))
+    except urllib.error.HTTPError as e:
+        if e.code != 401:
+            print(json.dumps({"error": f"HTTP {e.code}"}))
+            sys.exit(0)
+        rt = oauth.get("refreshToken", "")
+        if not rt:
+            print(json.dumps({"error": "refreshToken が見つかりません。claude login を実行してください"}))
+            sys.exit(0)
+        try:
+            new = refresh(rt)
+        except urllib.error.HTTPError as e2:
+            body = e2.read().decode()[:200] if hasattr(e2, "read") else ""
+            print(json.dumps({"error": f"トークン更新失敗 (HTTP {e2.code}): {body}"}))
+            sys.exit(0)
+        oauth["accessToken"] = new.get("access_token", "")
+        if "refresh_token" in new:
+            oauth["refreshToken"] = new["refresh_token"]
+        creds["claudeAiOauth"] = oauth
+        with open(CREDS, "w") as f:
+            json.dump(creds, f, indent=2)
+        print(json.dumps(call_usage(new["access_token"])))
+except Exception as e:
+    print(json.dumps({"error": str(e)}))
+"""#
+
     @MainActor
     static func fetchUsage(session: SSHSession) async -> ClaudeUsageResult {
         guard let client = session.client else {
             return ClaudeUsageResult(usage: nil, error: "SSH client not available")
         }
 
-        // Step 1: Get OAuth token from remote via SSH
-        let tokenResult = await fetchOAuthToken(client: client)
-        guard let token = tokenResult.token else {
-            return ClaudeUsageResult(usage: nil, error: tokenResult.error ?? "No token")
-        }
-
-        // Step 2: Call the API directly from iOS
-        return await callUsageAPI(token: token)
-    }
-
-    // MARK: - Step 1: Get OAuth Token via SSH
-
-    private struct TokenResult {
-        let token: String?
-        let error: String?
-    }
-
-    private static func fetchOAuthToken(client: SSHClient) async -> TokenResult {
         do {
-            var buffer = try await client.executeCommand("cat ~/.claude/.credentials.json 2>/dev/null")
+            var buffer = try await client.executeCommand(
+                "python3 -c \(shellEscaped(remoteScript))"
+            )
             let output = (buffer.readString(length: buffer.readableBytes) ?? "")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
 
             guard !output.isEmpty,
                   let data = output.data(using: .utf8),
-                  let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let oauth = json["claudeAiOauth"] as? [String: Any],
-                  let token = oauth["accessToken"] as? String, !token.isEmpty
+                  let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
             else {
-                return TokenResult(token: nil, error: "Mac で Claude Code にログインしてください")
+                return ClaudeUsageResult(usage: nil, error: "レスポンスの解析に失敗しました")
             }
 
-            return TokenResult(token: token, error: nil)
-        } catch {
-            return TokenResult(token: nil, error: "SSH: \(error.localizedDescription)")
-        }
-    }
-
-    // MARK: - Step 2: Call Usage API directly from iOS
-
-    private static func callUsageAPI(token: String) async -> ClaudeUsageResult {
-        guard let url = URL(string: "https://api.anthropic.com/api/oauth/usage") else {
-            return ClaudeUsageResult(usage: nil, error: "Bad URL")
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("claude-code/2.1.5", forHTTPHeaderField: "User-Agent")
-        request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
-        request.timeoutInterval = 10
-
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-
-            guard let http = response as? HTTPURLResponse else {
-                return ClaudeUsageResult(usage: nil, error: "No HTTP response")
-            }
-
-            guard http.statusCode == 200 else {
-                let body = String(data: data, encoding: .utf8)?.prefix(100) ?? ""
-                return ClaudeUsageResult(usage: nil, error: "HTTP \(http.statusCode): \(body)")
-            }
-
-            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                return ClaudeUsageResult(usage: nil, error: "Invalid JSON")
+            if let error = json["error"] as? String {
+                return ClaudeUsageResult(usage: nil, error: error)
             }
 
             return ClaudeUsageResult(usage: parseUsageResponse(json), error: nil)
         } catch {
-            return ClaudeUsageResult(usage: nil, error: "API: \(error.localizedDescription)")
+            return ClaudeUsageResult(usage: nil, error: "SSH: \(error.localizedDescription)")
         }
+    }
+
+    // MARK: - Shell Escape
+
+    private static func shellEscaped(_ script: String) -> String {
+        let escaped = script.replacingOccurrences(of: "'", with: "'\\''")
+        return "'\(escaped)'"
     }
 
     // MARK: - Parse API Response
@@ -114,7 +132,9 @@ struct ClaudeUsageService {
     private static func parseUtilization(_ value: Any?) -> Double {
         if let d = value as? Double { return d }
         if let i = value as? Int { return Double(i) }
-        if let s = value as? String, let d = Double(s.replacingOccurrences(of: "%", with: "")) { return d }
+        if let s = value as? String, let d = Double(s.replacingOccurrences(of: "%", with: "")) {
+            return d
+        }
         return 0
     }
 }

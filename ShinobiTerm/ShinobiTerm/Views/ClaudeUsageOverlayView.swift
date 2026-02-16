@@ -69,13 +69,19 @@ struct ClaudeUsageOverlayView: View {
 
     @ViewBuilder
     private func usageContent(_ usage: ClaudeUsage) -> some View {
+        // Balance — most constrained window
+        balanceSection(usage)
+            .padding(.top, 12)
+
+        sectionDivider
+            .padding(.vertical, 10)
+
         // Current session (5h rolling window)
         usageSection(
             title: "Current session",
             subtitle: remainingTimeText(usage.fiveHour.resetsAt),
             ratio: usage.fiveHour.utilization / 100.0
         )
-        .padding(.top, 12)
 
         sectionDivider
             .padding(.vertical, 10)
@@ -109,6 +115,23 @@ struct ClaudeUsageOverlayView: View {
                 subtitle: remainingTimeText(sonnet.resetsAt),
                 ratio: sonnet.utilization / 100.0
             )
+        }
+    }
+
+    // MARK: - Balance Section
+
+    private func balanceSection(_ usage: ClaudeUsage) -> some View {
+        let maxUtil = max(usage.fiveHour.utilization, usage.sevenDay.utilization)
+        let remaining = max(100.0 - maxUtil, 0)
+        let color: Color = remaining >= 50 ? .blue : remaining >= 20 ? .orange : .red
+
+        return VStack(alignment: .leading, spacing: 4) {
+            Text("現在の残高")
+                .font(.system(size: 11))
+                .foregroundStyle(Color("textMuted"))
+            Text("\(Int(remaining))%")
+                .font(.system(size: 28, weight: .bold, design: .monospaced))
+                .foregroundStyle(color)
         }
     }
 

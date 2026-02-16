@@ -28,7 +28,13 @@ final class TipJarService: ObservableObject {
     }
 
     func purchaseBeer() async {
-        guard let product = beerProduct else { return }
+        if beerProduct == nil {
+            await loadProducts()
+        }
+        guard let product = beerProduct else {
+            purchaseState = .failed("Unable to load product. Please check your connection and try again.")
+            return
+        }
 
         purchaseState = .purchasing
         do {

@@ -6,6 +6,7 @@ final class TipJarService: ObservableObject {
 
     @Published private(set) var beerProduct: Product?
     @Published private(set) var purchaseState: PurchaseState = .idle
+    @Published private(set) var productLoadError: String?
 
     enum PurchaseState: Equatable {
         case idle
@@ -19,11 +20,16 @@ final class TipJarService: ObservableObject {
     }
 
     func loadProducts() async {
+        productLoadError = nil
         do {
             let products = try await Product.products(for: [Self.beerTipID])
             beerProduct = products.first
+            if beerProduct == nil {
+                productLoadError = "product unavailable"
+            }
         } catch {
             beerProduct = nil
+            productLoadError = "failed to load: \(error.localizedDescription)"
         }
     }
 

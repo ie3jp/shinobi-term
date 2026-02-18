@@ -16,6 +16,8 @@ struct SettingsView: View {
         return newSettings
     }
 
+    @State private var showingPurchaseAlert = false
+
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
@@ -42,6 +44,28 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .preferredColorScheme(.dark)
+        .onChange(of: tipJar.purchaseState) { _, state in
+            if case .success = state { showingPurchaseAlert = true }
+            if case .failed = state { showingPurchaseAlert = true }
+        }
+        .alert(purchaseAlertTitle, isPresented: $showingPurchaseAlert) {
+            Button("OK") { tipJar.resetState() }
+        } message: {
+            Text(purchaseAlertMessage)
+        }
+    }
+
+    private var purchaseAlertTitle: String {
+        if case .success = tipJar.purchaseState { return "thanks!" }
+        return "error"
+    }
+
+    private var purchaseAlertMessage: String {
+        switch tipJar.purchaseState {
+        case .success: return "your support means a lot. cheers!"
+        case .failed(let message): return message
+        default: return ""
+        }
     }
 
     // MARK: - Appearance
@@ -211,9 +235,28 @@ struct SettingsView: View {
                     }
                     .padding(.horizontal, 16)
                     .frame(height: 48)
+                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PressableRowStyle())
                 .disabled(tipJar.purchaseState == .purchasing)
+
+                if let loadError = tipJar.productLoadError {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 11))
+                        Text(loadError)
+                            .font(.system(size: 11, design: .monospaced))
+                        Spacer()
+                        Button("retry") {
+                            Task { await tipJar.loadProducts() }
+                        }
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(Color("greenPrimary"))
+                    }
+                    .foregroundStyle(Color("textMuted"))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                }
             }
             .background(Color("bgSurface"))
             .cornerRadius(8)
@@ -227,35 +270,6 @@ struct SettingsView: View {
                 .foregroundStyle(Color("textTertiary"))
                 .padding(.top, 2)
         }
-        .alert("thanks!", isPresented: showThanksAlert) {
-            Button("OK") { tipJar.resetState() }
-        } message: {
-            Text("your support means a lot. cheers!")
-        }
-        .alert("error", isPresented: showErrorAlert) {
-            Button("OK") { tipJar.resetState() }
-        } message: {
-            if case .failed(let message) = tipJar.purchaseState {
-                Text(message)
-            }
-        }
-    }
-
-    private var showThanksAlert: Binding<Bool> {
-        Binding(
-            get: { tipJar.purchaseState == .success },
-            set: { if !$0 { tipJar.resetState() } }
-        )
-    }
-
-    private var showErrorAlert: Binding<Bool> {
-        Binding(
-            get: {
-                if case .failed = tipJar.purchaseState { return true }
-                return false
-            },
-            set: { if !$0 { tipJar.resetState() } }
-        )
     }
 
     // MARK: - About
@@ -456,6 +470,14 @@ struct AcknowledgementsView: View {
             .fill(Color("borderPrimary"))
             .frame(height: 1)
             .padding(.leading, 16)
+    }
+}
+
+private struct PressableRowStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.5 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
